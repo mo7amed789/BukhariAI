@@ -45,16 +45,11 @@ public sealed class GeminiAiService : IAiService
         }
 
         string rawModel = _options.Model;
-        string model = string.IsNullOrWhiteSpace(rawModel) || rawModel.Contains("2.5") ? "gemini-3.6-flash" : rawModel;
-        string endpoint = string.IsNullOrWhiteSpace(_options.Endpoint)
-            ? $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}"
-            : _options.Endpoint;
-
-        _logger.LogInformation(
-            "Sending {PageCount} page screenshots to Gemini Vision model '{Model}' (HasContext: {HasContext}).",
-            model,
-            pageScreenshots.Count,
-            context is not null);
+        string initialModel = string.IsNullOrWhiteSpace(rawModel) || rawModel.Contains("2.5") || rawModel.Contains("3.6") ? "gemini-3.7-flash" : rawModel;
+        var candidateModels = new List<string> { initialModel };
+        if (!candidateModels.Contains("gemini-3.7-flash")) candidateModels.Add("gemini-3.7-flash");
+        if (!candidateModels.Contains("gemini-3.5-flash")) candidateModels.Add("gemini-3.5-flash");
+        if (!candidateModels.Contains("gemini-3.8-flash")) candidateModels.Add("gemini-3.8-flash");
 
         string? customInstructions = await _settingsService.GetAsync("AI:CustomResponseInstructions", cancellationToken);
         string systemPrompt = (await _settingsService.GetAsync("AI:LessonSystemPrompt", cancellationToken))
@@ -99,52 +94,51 @@ public sealed class GeminiAiService : IAiService
         HttpResponseMessage? response = null;
         string responseBody = string.Empty;
 
-        for (int attempt = 1; attempt <= 3; attempt++)
+        foreach (var model in candidateModels)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
-            request.Headers.Add("x-goog-api-key", apiKey);
-            request.Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+            string endpoint = string.IsNullOrWhiteSpace(_options.Endpoint)
+                ? $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}"
+                : _options.Endpoint;
 
-            try
+            _logger.LogInformation("Sending {PageCount} page screenshots to Gemini Vision model '{Model}' (HasContext: {HasContext}).", pageScreenshots.Count, model, context is not null);
+
+            for (int attempt = 1; attempt <= 2; attempt++)
             {
-                response = await _httpClient.SendAsync(request, cancellationToken);
-                responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+                using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+                request.Headers.Add("x-goog-api-key", apiKey);
+                request.Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
-                if (response.IsSuccessStatusCode)
+                try
                 {
+                    response = await _httpClient.SendAsync(request, cancellationToken);
+                    responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        break;
+                    }
+
+                    // If rate limited or 5xx server error, retry or fall back
+                    if ((int)response.StatusCode == 429 || (int)response.StatusCode >= 500)
+                    {
+                        _logger.LogWarning("Gemini model '{Model}' returned retryable status {StatusCode} on attempt {Attempt}.", model, (int)response.StatusCode, attempt);
+                        await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+                        continue;
+                    }
+
+                    _logger.LogWarning("Gemini Vision API model '{Model}' returned error status {StatusCode}: {ResponseBody}.", model, (int)response.StatusCode, responseBody);
                     break;
                 }
-
-                // If rate limited or 5xx server error, retry
-                if ((int)response.StatusCode == 429 || (int)response.StatusCode >= 500)
+                catch (Exception ex) when (attempt < 2 && (ex is HttpRequestException || ex is IOException || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested)))
                 {
-                    int delaySeconds = attempt switch
-                    {
-                        1 => 2,
-                        2 => 3,
-                        _ => 5
-                    };
-                    _logger.LogWarning("Gemini API returned retryable status {StatusCode} on attempt {Attempt}. Waiting {Delay}s before retry...", (int)response.StatusCode, attempt, delaySeconds);
-                    await Task.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken);
-                    continue;
+                    _logger.LogWarning(ex, "Transient transport error on attempt {Attempt} for model '{Model}'.", attempt, model);
+                    await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
                 }
+            }
 
-                // Non-retryable HTTP error (e.g. 400 Invalid API Key, 401 Unauthorized, 403 Forbidden)
-                _logger.LogWarning(
-                    "Gemini Vision API returned non-retryable error status {StatusCode}: {ResponseBody}.",
-                    (int)response.StatusCode,
-                    responseBody);
+            if (response is not null && response.IsSuccessStatusCode)
+            {
                 break;
-            }
-            catch (Exception ex) when (attempt < 3 && (ex is HttpRequestException || ex is IOException || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested)))
-            {
-                _logger.LogWarning(ex, "Transient transport/timeout exception on attempt {Attempt} contacting Gemini. Retrying in 2s...", attempt);
-                await Task.Delay(TimeSpan.FromSeconds(2 * attempt), cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "HTTP transport error while contacting Gemini Vision endpoint '{Endpoint}': {Message}", endpoint, ex.Message);
-                throw;
             }
         }
 
@@ -274,15 +268,11 @@ public sealed class GeminiAiService : IAiService
         }
 
         string rawModel = _options.Model;
-        string model = string.IsNullOrWhiteSpace(rawModel) || rawModel.Contains("2.5") ? "gemini-3.6-flash" : rawModel;
-        string endpoint = string.IsNullOrWhiteSpace(_options.Endpoint)
-            ? $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}"
-            : _options.Endpoint;
-
-        _logger.LogInformation(
-            "Sending source text ({Length} chars) to Gemini model '{Model}'.",
-            sourceText.Length,
-            model);
+        string initialModel = string.IsNullOrWhiteSpace(rawModel) || rawModel.Contains("2.5") || rawModel.Contains("3.6") ? "gemini-3.7-flash" : rawModel;
+        var candidateModels = new List<string> { initialModel };
+        if (!candidateModels.Contains("gemini-3.7-flash")) candidateModels.Add("gemini-3.7-flash");
+        if (!candidateModels.Contains("gemini-3.5-flash")) candidateModels.Add("gemini-3.5-flash");
+        if (!candidateModels.Contains("gemini-3.8-flash")) candidateModels.Add("gemini-3.8-flash");
 
         string? customInstructions = await _settingsService.GetAsync("AI:CustomResponseInstructions", cancellationToken);
         string systemPrompt = (await _settingsService.GetAsync("AI:LessonSystemPrompt", cancellationToken))
@@ -320,32 +310,46 @@ public sealed class GeminiAiService : IAiService
         HttpResponseMessage? response = null;
         string responseBody = string.Empty;
 
-        for (int attempt = 1; attempt <= 3; attempt++)
+        foreach (var model in candidateModels)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            try
+            string endpoint = string.IsNullOrWhiteSpace(_options.Endpoint)
+                ? $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}"
+                : _options.Endpoint;
+
+            _logger.LogInformation("Sending source text ({Length} chars) to Gemini model '{Model}'.", sourceText.Length, model);
+
+            for (int attempt = 1; attempt <= 2; attempt++)
             {
-                using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
-                request.Headers.Add("x-goog-api-key", apiKey);
-                request.Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-
-                response = await _httpClient.SendAsync(request, cancellationToken);
-                responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
-
-                if (response.IsSuccessStatusCode) break;
-
-                if ((int)response.StatusCode == 429 || (int)response.StatusCode >= 500)
+                cancellationToken.ThrowIfCancellationRequested();
+                try
                 {
-                    _logger.LogWarning("Gemini text request attempt {Attempt} failed with status {StatusCode}.", attempt, (int)response.StatusCode);
-                    if (attempt < 3) await Task.Delay(1000 * attempt, cancellationToken);
-                    continue;
+                    using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+                    request.Headers.Add("x-goog-api-key", apiKey);
+                    request.Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+                    response = await _httpClient.SendAsync(request, cancellationToken);
+                    responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+
+                    if (response.IsSuccessStatusCode) break;
+
+                    if ((int)response.StatusCode == 429 || (int)response.StatusCode >= 500)
+                    {
+                        _logger.LogWarning("Gemini text request attempt {Attempt} with model '{Model}' failed with status {StatusCode}.", attempt, model, (int)response.StatusCode);
+                        if (attempt < 2) await Task.Delay(1500, cancellationToken);
+                        continue;
+                    }
+                    break;
                 }
-                break;
+                catch (HttpRequestException ex) when (attempt < 2)
+                {
+                    _logger.LogWarning(ex, "Gemini text request transport error on attempt {Attempt} for model '{Model}'.", attempt, model);
+                    await Task.Delay(1000, cancellationToken);
+                }
             }
-            catch (HttpRequestException ex) when (attempt < 3)
+
+            if (response is not null && response.IsSuccessStatusCode)
             {
-                _logger.LogWarning(ex, "Gemini text request transport error on attempt {Attempt}.", attempt);
-                await Task.Delay(1000 * attempt, cancellationToken);
+                break;
             }
         }
 
