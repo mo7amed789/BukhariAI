@@ -45,9 +45,12 @@ public sealed class AdaptiveLearningService : IAdaptiveLearningService
         var masteries = await _db.StudentConceptMasteries.AsNoTracking()
             .Where(m => m.BookId == bookId).ToListAsync(cancellationToken);
         var states = masteries.Select(m => AdaptiveLearningPolicy.Evaluate(m, DateTime.UtcNow)).ToList();
+        _logger.LogInformation("Evaluated adaptive learning state for BookId {BookId}: {TotalCount} concepts ({DueCount} due, {WeakCount} weak).",
+            bookId, states.Count, states.Count(s => s.IsReviewDue), states.Count(s => s.IsWeak));
+
         foreach (var state in states)
         {
-            _logger.LogInformation("AdaptiveDecision: Concept={Concept}, PreviousLevel={Level}, Confidence={Confidence:F2}, Action={Action}, Reason={ReasonCode}",
+            _logger.LogDebug("AdaptiveDecision: Concept={Concept}, PreviousLevel={Level}, Confidence={Confidence:F2}, Action={Action}, Reason={ReasonCode}",
                 state.ConceptKey, state.LearningLevel, state.Confidence, state.Action, state.ReasonCode);
         }
         return new AdaptiveLearningStateDto { BookId = bookId, Intent = intent, Concepts = states };

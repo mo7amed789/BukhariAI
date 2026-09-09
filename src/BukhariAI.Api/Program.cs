@@ -40,6 +40,10 @@ TaskScheduler.UnobservedTaskException += (sender, eventArgs) =>
     eventArgs.SetObserved();
 };
 
+// Ensure UTF-8 console encoding so Arabic text in logs prints correctly instead of question marks
+Console.OutputEncoding = Encoding.UTF8;
+Console.InputEncoding = Encoding.UTF8;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Cloud deployment port binding (Render, Cloud Run, Heroku pass PORT env var)
@@ -49,10 +53,12 @@ if (!string.IsNullOrWhiteSpace(portEnv))
     builder.WebHost.UseUrls($"http://0.0.0.0:{portEnv}");
 }
 
-// Configure bounded Kestrel limits for uploads (50 MB max)
+// Configure bounded Kestrel limits for uploads and extended timeouts
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
     serverOptions.Limits.MaxRequestBodySize = 50 * 1024 * 1024; // 50 MB
+    serverOptions.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(10);
+    serverOptions.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5);
 });
 
 // Configure bounded Form options for multipart uploads
@@ -99,7 +105,7 @@ builder.Services.AddAuthentication(options =>
 });
 builder.Services.AddAuthorization();
 
-// Rate Limiting (Partitioned by Authenticated User with IP fallback)
+// Rate Limiting (Partitioned by Authenticated User with IP fallback, with queuing to prevent rejections)
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -112,9 +118,10 @@ builder.Services.AddRateLimiter(options =>
 
         return RateLimitPartition.GetFixedWindowLimiter(partitionKey, _ => new FixedWindowRateLimiterOptions
         {
-            PermitLimit = 15,
+            PermitLimit = 60,
             Window = TimeSpan.FromMinutes(1),
-            QueueLimit = 0
+            QueueLimit = 30,
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst
         });
     });
 
@@ -127,9 +134,10 @@ builder.Services.AddRateLimiter(options =>
 
         return RateLimitPartition.GetFixedWindowLimiter(partitionKey, _ => new FixedWindowRateLimiterOptions
         {
-            PermitLimit = 120,
+            PermitLimit = 300,
             Window = TimeSpan.FromMinutes(1),
-            QueueLimit = 0
+            QueueLimit = 100,
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst
         });
     });
 });
@@ -174,12 +182,12 @@ builder.Services.AddSingleton<BiographyPromptBuilder>();
 builder.Services.AddSingleton<ScratchLearningPromptBuilder>();
 builder.Services.AddScoped<GenerateLessonHandler>();
 
-// Register Infrastructure Services
+// Register Infrastructure Services with generous timeouts to prevent AI processing drops
 builder.Services.AddScoped<IPdfExtractionService, PdfExtractionService>();
-builder.Services.AddHttpClient<IQuranAnalysisService, QuranAnalysisService>(client => client.Timeout = TimeSpan.FromMinutes(4));
-builder.Services.AddHttpClient<ILessonChatService, LessonChatService>(client => client.Timeout = TimeSpan.FromMinutes(3));
-builder.Services.AddHttpClient<IPersonBiographyService, PersonBiographyService>(client => client.Timeout = TimeSpan.FromMinutes(3));
-builder.Services.AddHttpClient<IScratchLearningService, ScratchLearningService>(client => client.Timeout = TimeSpan.FromMinutes(4));
+builder.Services.AddHttpClient<IQuranAnalysisService, QuranAnalysisService>(client => client.Timeout = TimeSpan.FromMinutes(8));
+builder.Services.AddHttpClient<ILessonChatService, LessonChatService>(client => client.Timeout = TimeSpan.FromMinutes(6));
+builder.Services.AddHttpClient<IPersonBiographyService, PersonBiographyService>(client => client.Timeout = TimeSpan.FromMinutes(6));
+builder.Services.AddHttpClient<IScratchLearningService, ScratchLearningService>(client => client.Timeout = TimeSpan.FromMinutes(8));
 
 // Register a real Vision-capable AI provider. Mock responses are intentionally unsupported.
 string aiProvider = builder.Configuration.GetValue<string>("AI:Provider") ?? "Gemini";
@@ -190,13 +198,13 @@ if (string.Equals(aiProvider, "Mock", StringComparison.OrdinalIgnoreCase))
 else if (string.Equals(aiProvider, "OpenAI", StringComparison.OrdinalIgnoreCase) ||
          string.Equals(aiProvider, "OpenCode", StringComparison.OrdinalIgnoreCase))
 {
-    builder.Services.AddHttpClient<IAiService, AiService>(client => client.Timeout = TimeSpan.FromMinutes(3));
-    builder.Services.AddHttpClient<IAssessmentEvaluator, AiAssessmentEvaluator>();
+    builder.Services.AddHttpClient<IAiService, AiService>(client => client.Timeout = TimeSpan.FromMinutes(10));
+    builder.Services.AddHttpClient<IAssessmentEvaluator, AiAssessmentEvaluator>(client => client.Timeout = TimeSpan.FromMinutes(5));
 }
 else
 {
-    builder.Services.AddHttpClient<IAiService, GeminiAiService>(client => client.Timeout = TimeSpan.FromMinutes(3));
-    builder.Services.AddHttpClient<IAssessmentEvaluator, AiAssessmentEvaluator>();
+    builder.Services.AddHttpClient<IAiService, GeminiAiService>(client => client.Timeout = TimeSpan.FromMinutes(10));
+    builder.Services.AddHttpClient<IAssessmentEvaluator, AiAssessmentEvaluator>(client => client.Timeout = TimeSpan.FromMinutes(5));
 }
 
 // Swagger / OpenAPI

@@ -551,7 +551,11 @@
 
       if (!response.ok) {
         if (response.status === 429) {
-          throw new Error('الخدمة مشغولة حاليًا بسبب قيود سعة المعالجة المؤقتة. يُرجى الانتظار دقيقة واحدة ثم إعادة المحاولة.');
+          if (!options._retryCount) {
+            await new Promise((resolve) => setTimeout(resolve, 2500));
+            return await api(endpoint, { ...options, _retryCount: 1 });
+          }
+          throw new Error('الخدمة مشغولة حاليًا بمعالجة طلبات أخرى. يرجى الانتظار بضع لحظات ثم إعادة المحاولة.');
         }
         let errorPayload = null;
         try {
@@ -559,7 +563,7 @@
         } catch {
           // ignore non-json error responses
         }
-        const message = errorPayload?.error || errorPayload?.detail || errorPayload?.title || `خطأ في الخادم (${response.status})`;
+        const message = errorPayload?.detail || errorPayload?.error || errorPayload?.title || `خطأ في الخادم (${response.status})`;
         throw new Error(message);
       }
 
@@ -3116,15 +3120,40 @@
       }
     }
 
-    // UI Loading state
+    // UI Loading state with dynamic reassuring progress cycling
     const submitBtn = $('#generate-lesson-btn');
     const statusCard = $('#generation-status-card');
     submitBtn.disabled = true;
     submitBtn.querySelector('.spinner').hidden = false;
     statusCard.hidden = false;
 
+    const statusTitle = $('#generation-status-title');
+    const statusDetail = $('#generation-status-detail');
+    let progressInterval = null;
+    if (statusTitle && statusDetail) {
+      const progressSteps = [
+        { title: 'جارٍ قراءة وفحص صفحات المصدر بدقة...', detail: 'يتم الآن استيعاب نصوص الكتاب وصوره تمهيداً لبدء التحليل اللفظي والمسائل.' },
+        { title: 'جارٍ التحليل اللفظي واستيعاب الأدلة...', detail: 'يقوم الذكاء الاصطناعي بتفكيك المسائل وتوضيح المفردات وبيان وجوه الاستدلال.' },
+        { title: 'جارٍ صياغة الشرح الميسر والفوائد المستنبطة...', detail: 'يتم الآن إعداد الشرح المفصل وضبط القواعد وصياغة الأسئلة التقييمية.' },
+        { title: 'جارٍ إنهاء تدقيق الدرس وحفظه في كتابك...', detail: 'لحظات أخيرة ويكتمل إعداد الدرس بالكامل.' }
+      ];
+      let stepIdx = 0;
+      statusTitle.textContent = progressSteps[0].title;
+      statusDetail.textContent = progressSteps[0].detail;
+      progressInterval = setInterval(() => {
+        stepIdx = (stepIdx + 1) % progressSteps.length;
+        statusTitle.textContent = progressSteps[stepIdx].title;
+        statusDetail.textContent = progressSteps[stepIdx].detail;
+      }, 7000);
+    }
+
     try {
       let response;
+      const authHeaders = { 'ngrok-skip-browser-warning': 'true' };
+      const authToken = state.authToken || localStorage.getItem('bukhariai_token');
+      if (authToken) {
+        authHeaders['Authorization'] = `Bearer ${authToken}`;
+      }
 
       if (mode === 'pdf') {
         const form = new FormData();
@@ -3135,15 +3164,15 @@
 
         response = await fetch('/api/lessons/generate', {
           method: 'POST',
-          headers: { 'ngrok-skip-browser-warning': 'true' },
+          headers: authHeaders,
           body: form
         });
       } else if (mode === 'clipboard-text') {
         response = await fetch('/api/lessons/generate-from-text', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'ngrok-skip-browser-warning': 'true'
+            ...authHeaders,
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             sourceText: pastedText,
@@ -3163,17 +3192,43 @@
 
         response = await fetch('/api/lessons/generate-from-images', {
           method: 'POST',
-          headers: { 'ngrok-skip-browser-warning': 'true' },
+          headers: authHeaders,
           body: form
         });
       }
 
+      // If rate limited, auto-retry once after 3 seconds
+      if (!response.ok && response.status === 429) {
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        if (mode === 'pdf') {
+          const retryForm = new FormData();
+          retryForm.append('pdf', file);
+          retryForm.append('startPage', startPage);
+          retryForm.append('endPage', endPage);
+          if (targetBookId) retryForm.append('bookId', targetBookId);
+          response = await fetch('/api/lessons/generate', { method: 'POST', headers: authHeaders, body: retryForm });
+        } else if (mode === 'clipboard-text') {
+          response = await fetch('/api/lessons/generate-from-text', {
+            method: 'POST',
+            headers: { ...authHeaders, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sourceText: pastedText, startPage, endPage, bookId: targetBookId })
+          });
+        } else if (mode === 'clipboard-images') {
+          const retryForm = new FormData();
+          state.pastedImages.forEach((img, idx) => { retryForm.append('images', img.blob, `screenshot_${idx + 1}.png`); });
+          retryForm.append('startPage', startPage);
+          retryForm.append('endPage', endPage);
+          if (targetBookId) retryForm.append('bookId', targetBookId);
+          response = await fetch('/api/lessons/generate-from-images', { method: 'POST', headers: authHeaders, body: retryForm });
+        }
+      }
+
       if (!response.ok) {
         if (response.status === 429) {
-          throw new Error('الخدمة مشغولة حاليًا بسبب قيود سعة المعالجة المؤقتة. يُرجى الانتظار دقيقة واحدة ثم إعادة المحاولة.');
+          throw new Error('الخدمة مشغولة حاليًا بمعالجة طلبات أخرى. يرجى الانتظار بضع لحظات ثم إعادة المحاولة.');
         }
         const prob = await response.json().catch(() => null);
-        throw new Error(prob?.detail || 'تعذر معالجة المقطع وإنشاء الدرس.');
+        throw new Error(prob?.detail || 'تعذر معالجة المقطع وإنشاء الدرس حالياً. يرجى التحقق وإعادة المحاولة.');
       }
 
       const lessonData = await response.json();
@@ -3289,6 +3344,7 @@
     } catch (err) {
       showToast(err.message, 'error');
     } finally {
+      if (progressInterval) clearInterval(progressInterval);
       submitBtn.disabled = false;
       submitBtn.querySelector('.spinner').hidden = true;
       statusCard.hidden = true;
@@ -3485,18 +3541,119 @@
     }
   }
 
-  function updateAyahRangeInputs(surah) {
+  const AYAH_CHUNK_SIZE = 25;
+
+  function renderQuranChunkButtons(surah, activeStart = 1, activeEnd = 25) {
+    const container = $('#quran-chunk-selector-container');
+    const chipsBox = $('#quran-chunk-buttons');
+    if (!container || !chipsBox) return;
+
+    if (!surah || surah.totalAyat <= AYAH_CHUNK_SIZE) {
+      container.hidden = true;
+      chipsBox.innerHTML = '';
+      return;
+    }
+
+    container.hidden = false;
+    chipsBox.innerHTML = '';
+
+    const total = surah.totalAyat;
+    let chunkIndex = 1;
+
+    for (let start = 1; start <= total; start += AYAH_CHUNK_SIZE) {
+      const end = Math.min(start + AYAH_CHUNK_SIZE - 1, total);
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'quran-chunk-chip';
+      chip.dataset.start = String(start);
+      chip.dataset.end = String(end);
+
+      const isActive = (start === activeStart && end === activeEnd);
+      if (isActive) chip.classList.add('active');
+
+      chip.innerHTML = `<span>المقطع ${toArabicDigits(chunkIndex)}: (${toArabicDigits(start)} - ${toArabicDigits(end)})</span>`;
+      chip.title = `تحديد دراسة الآيات من ${start} إلى ${end}`;
+
+      const s = start;
+      const e = end;
+      chip.addEventListener('click', () => {
+        const startInput = $('#quran-start-ayah');
+        const endInput = $('#quran-end-ayah');
+        const fullCheck = $('#quran-full-surah-check');
+
+        if (startInput) {
+          startInput.value = s;
+          startInput.disabled = false;
+        }
+        if (endInput) {
+          endInput.value = e;
+          endInput.disabled = false;
+        }
+        if (fullCheck) {
+          fullCheck.checked = false;
+        }
+
+        $$('.quran-chunk-chip', chipsBox).forEach(b => b.classList.remove('active'));
+        chip.classList.add('active');
+      });
+
+      chipsBox.appendChild(chip);
+      chunkIndex++;
+    }
+  }
+
+  function highlightActiveChunk(start, end) {
+    const chipsBox = $('#quran-chunk-buttons');
+    if (!chipsBox) return;
+    $$('.quran-chunk-chip', chipsBox).forEach(chip => {
+      const s = parseInt(chip.dataset.start, 10);
+      const e = parseInt(chip.dataset.end, 10);
+      chip.classList.toggle('active', s === start && e === end);
+    });
+  }
+
+  function updateAyahRangeInputs(surah, resetToDefault = true) {
     if (!surah) return;
     const startInput = $('#quran-start-ayah');
     const endInput = $('#quran-end-ayah');
     const fullCheck = $('#quran-full-surah-check');
+    const isLongSurah = surah.totalAyat > AYAH_CHUNK_SIZE;
 
-    if (fullCheck && fullCheck.checked) {
+    if (isLongSurah) {
+      if (resetToDefault) {
+        if (fullCheck) fullCheck.checked = false;
+        if (startInput) {
+          startInput.value = '1';
+          startInput.disabled = false;
+        }
+        if (endInput) {
+          endInput.value = String(AYAH_CHUNK_SIZE);
+          endInput.placeholder = String(AYAH_CHUNK_SIZE);
+          endInput.disabled = false;
+        }
+        renderQuranChunkButtons(surah, 1, AYAH_CHUNK_SIZE);
+      } else {
+        if (fullCheck && fullCheck.checked) {
+          if (startInput) { startInput.value = '1'; startInput.disabled = true; }
+          if (endInput) { endInput.value = surah.totalAyat; endInput.placeholder = surah.totalAyat; endInput.disabled = true; }
+          highlightActiveChunk(0, 0);
+        } else {
+          if (startInput) startInput.disabled = false;
+          if (endInput) {
+            endInput.placeholder = String(Math.min(AYAH_CHUNK_SIZE, surah.totalAyat));
+            endInput.disabled = false;
+          }
+          const curStart = parseInt(startInput?.value, 10) || 1;
+          const curEnd = parseInt(endInput?.value, 10) || Math.min(AYAH_CHUNK_SIZE, surah.totalAyat);
+          renderQuranChunkButtons(surah, curStart, curEnd);
+        }
+      }
+    } else {
+      // Short surah (<= 25 verses): full surah is default
+      if (fullCheck) fullCheck.checked = true;
       if (startInput) { startInput.value = '1'; startInput.disabled = true; }
       if (endInput) { endInput.value = surah.totalAyat; endInput.placeholder = surah.totalAyat; endInput.disabled = true; }
-    } else {
-      if (startInput) startInput.disabled = false;
-      if (endInput) { endInput.placeholder = surah.totalAyat; endInput.disabled = false; }
+      renderQuranChunkButtons(surah, 1, surah.totalAyat);
     }
   }
 
@@ -3526,14 +3683,29 @@
     $('#quran-surah-select')?.addEventListener('change', (e) => {
       const num = parseInt(e.target.value, 10);
       const found = state.quranSurahs.find(s => s.number === num);
-      updateAyahRangeInputs(found);
+      updateAyahRangeInputs(found, true);
     });
 
     // Full surah checkbox
-    $('#quran-full-surah-check')?.addEventListener('change', () => {
+    $('#quran-full-surah-check')?.addEventListener('change', (e) => {
       const num = parseInt($('#quran-surah-select')?.value, 10);
       const found = state.quranSurahs.find(s => s.number === num);
-      updateAyahRangeInputs(found);
+      if (e.target.checked && found && found.totalAyat > AYAH_CHUNK_SIZE) {
+        showToast(`تنبيه: سورة ${found.name} (${found.totalAyat} آية) طويلة. يُنصح بشدة بمدارستها على مقاطع 25 آية لضمان دقة واستيعاب الذكاء الاصطناعي وتفادي انقطاع الاستجابة.`, 'warning');
+      }
+      updateAyahRangeInputs(found, false);
+    });
+
+    // Manual typing into start/end inputs syncs chunk highlight
+    $('#quran-start-ayah')?.addEventListener('input', () => {
+      const s = parseInt($('#quran-start-ayah')?.value, 10);
+      const e = parseInt($('#quran-end-ayah')?.value, 10);
+      highlightActiveChunk(s, e);
+    });
+    $('#quran-end-ayah')?.addEventListener('input', () => {
+      const s = parseInt($('#quran-start-ayah')?.value, 10);
+      const e = parseInt($('#quran-end-ayah')?.value, 10);
+      highlightActiveChunk(s, e);
     });
 
     // Toggle custom text
@@ -3577,13 +3749,16 @@
   function startQuranStudyForSurah(surahNum) {
     switchView('quran');
     const select = $('#quran-surah-select');
+    let found = null;
     if (select) {
       select.value = surahNum;
-      const found = state.quranSurahs.find(s => s.number === surahNum);
-      updateAyahRangeInputs(found);
+      found = state.quranSurahs.find(s => s.number === surahNum);
+      updateAyahRangeInputs(found, true);
     }
     const fullCheck = $('#quran-full-surah-check');
-    if (fullCheck) fullCheck.checked = true;
+    if (fullCheck) {
+      fullCheck.checked = !(found && found.totalAyat > AYAH_CHUNK_SIZE);
+    }
 
     // Trigger analysis
     $('#quran-analyze-btn')?.click();
@@ -3595,8 +3770,9 @@
     const surahNum = parseInt($('#quran-surah-select')?.value, 10);
     const selectedSurah = state.quranSurahs.find(s => s.number === surahNum);
     const isFull = $('#quran-full-surah-check')?.checked;
-    const startAyah = isFull ? 1 : parseInt($('#quran-start-ayah')?.value, 10) || 1;
-    const endAyah = isFull ? (selectedSurah?.totalAyat || null) : (parseInt($('#quran-end-ayah')?.value, 10) || null);
+    const defaultEnd = (selectedSurah && selectedSurah.totalAyat > AYAH_CHUNK_SIZE) ? AYAH_CHUNK_SIZE : (selectedSurah?.totalAyat || null);
+    const startAyah = isFull ? 1 : (parseInt($('#quran-start-ayah')?.value, 10) || 1);
+    const endAyah = isFull ? (selectedSurah?.totalAyat || null) : (parseInt($('#quran-end-ayah')?.value, 10) || defaultEnd);
     const customText = ($('#quran-custom-text')?.value || '').trim();
 
     const payload = {
@@ -3937,6 +4113,68 @@
         showToast('تعذر نسخ الملخص تلقائياً.', 'error');
       });
     });
+
+    // 25-Ayah Chunk Navigation for long surahs
+    const prevChunkBtn = $('#quran-prev-chunk-btn');
+    const nextChunkBtn = $('#quran-next-chunk-btn');
+    const selectedSurah = state.quranSurahs.find(s => s.number === surahNum);
+    const totalAyat = info.totalAyat || selectedSurah?.totalAyat || 0;
+
+    let curStart = 1;
+    let curEnd = totalAyat;
+    if (info.analyzedRange) {
+      const rangeParts = info.analyzedRange.split(/[-–إلى]/).map(p => parseInt(p.trim(), 10)).filter(n => !isNaN(n));
+      if (rangeParts.length === 2) {
+        curStart = rangeParts[0];
+        curEnd = rangeParts[1];
+      }
+    } else {
+      curStart = parseInt($('#quran-start-ayah')?.value, 10) || 1;
+      curEnd = parseInt($('#quran-end-ayah')?.value, 10) || Math.min(AYAH_CHUNK_SIZE, totalAyat);
+    }
+
+    if (totalAyat > AYAH_CHUNK_SIZE) {
+      if (nextChunkBtn) {
+        if (curEnd < totalAyat) {
+          const nextStart = curEnd + 1;
+          const nextEnd = Math.min(nextStart + AYAH_CHUNK_SIZE - 1, totalAyat);
+          nextChunkBtn.hidden = false;
+          nextChunkBtn.querySelector('.btn-text').textContent = `📖 المقطع التالي (${toArabicDigits(nextStart)} - ${toArabicDigits(nextEnd)})`;
+          nextChunkBtn.onclick = () => {
+            if ($('#quran-start-ayah')) $('#quran-start-ayah').value = nextStart;
+            if ($('#quran-end-ayah')) $('#quran-end-ayah').value = nextEnd;
+            if ($('#quran-full-surah-check')) $('#quran-full-surah-check').checked = false;
+            highlightActiveChunk(nextStart, nextEnd);
+            $('#quran-analyze-btn')?.click();
+            $('#view-quran')?.scrollIntoView({ behavior: 'smooth' });
+          };
+        } else {
+          nextChunkBtn.hidden = true;
+        }
+      }
+
+      if (prevChunkBtn) {
+        if (curStart > 1) {
+          const prevEnd = curStart - 1;
+          const prevStart = Math.max(1, prevEnd - AYAH_CHUNK_SIZE + 1);
+          prevChunkBtn.hidden = false;
+          prevChunkBtn.querySelector('.btn-text').textContent = `⬅️ المقطع السابق (${toArabicDigits(prevStart)} - ${toArabicDigits(prevEnd)})`;
+          prevChunkBtn.onclick = () => {
+            if ($('#quran-start-ayah')) $('#quran-start-ayah').value = prevStart;
+            if ($('#quran-end-ayah')) $('#quran-end-ayah').value = prevEnd;
+            if ($('#quran-full-surah-check')) $('#quran-full-surah-check').checked = false;
+            highlightActiveChunk(prevStart, prevEnd);
+            $('#quran-analyze-btn')?.click();
+            $('#view-quran')?.scrollIntoView({ behavior: 'smooth' });
+          };
+        } else {
+          prevChunkBtn.hidden = true;
+        }
+      }
+    } else {
+      if (nextChunkBtn) nextChunkBtn.hidden = true;
+      if (prevChunkBtn) prevChunkBtn.hidden = true;
+    }
 
     // 1. Detailed Ayah-by-Ayah Analysis & Munasabat
     renderQuranConnections(data.ayahAnalyses, surahNum);

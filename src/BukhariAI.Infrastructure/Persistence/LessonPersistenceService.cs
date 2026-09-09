@@ -627,7 +627,6 @@ public sealed partial class LessonPersistenceService : ILessonPersistenceService
 
         string rawSurahName = response.SurahInfo.Name.Trim();
         string cleanSurahName = rawSurahName.Replace("سورة ", "").Trim();
-        string lessonTitle = $"تدبر وتحفيظ سورة {cleanSurahName}";
 
         // Parse Start & End Ayah
         int startAyah = 1;
@@ -647,7 +646,13 @@ public sealed partial class LessonPersistenceService : ILessonPersistenceService
             endAyah = response.AyahAnalyses.Max(a => a.AyahNumber);
         }
 
-        // 2. Check if a lesson for this Surah ALREADY EXISTS in the Quran book
+        // Include ayah range in lesson title for long surahs (> 25 verses) or specific chunks
+        bool isPartialChunk = response.SurahInfo.TotalAyat > 25 || startAyah > 1 || endAyah < response.SurahInfo.TotalAyat;
+        string lessonTitle = isPartialChunk
+            ? $"تدبر وتحفيظ سورة {cleanSurahName} (الآيات {startAyah} - {endAyah})"
+            : $"تدبر وتحفيظ سورة {cleanSurahName}";
+
+        // 2. Check if a lesson for this Surah/Chunk ALREADY EXISTS in the Quran book
         var existingLesson = await _dbContext.Lessons
             .Include(l => l.Hadiths)
                 .ThenInclude(h => h.Evidences)
@@ -657,7 +662,7 @@ public sealed partial class LessonPersistenceService : ILessonPersistenceService
             .Include(l => l.ReviewQuestions)
             .Include(l => l.LessonPages)
             .Include(l => l.LessonProgresses)
-            .FirstOrDefaultAsync(l => l.BookId == book.Id && (l.Title == lessonTitle || l.Title.Contains(cleanSurahName)), cancellationToken);
+            .FirstOrDefaultAsync(l => l.BookId == book.Id && (l.Title == lessonTitle || (l.StartPage == startAyah && l.EndPage == endAyah && l.Title.Contains(cleanSurahName))), cancellationToken);
 
         Lesson targetLesson;
         bool isUpdated = existingLesson != null;

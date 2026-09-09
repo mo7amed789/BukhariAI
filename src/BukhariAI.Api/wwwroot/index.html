@@ -1171,12 +1171,22 @@
 
             <div class="quran-options-row">
               <label class="checkbox-label">
-                <input type="checkbox" id="quran-full-surah-check" checked />
+                <input type="checkbox" id="quran-full-surah-check" />
                 <span>تحليل كامل السورة</span>
               </label>
               <button type="button" id="toggle-quran-custom-text-btn" class="subtle-btn small-btn">
                 <span>✍️ أو إدخال نص آيات مخصص</span>
               </button>
+            </div>
+
+            <!-- 25-Ayah Chunk Selector for Long Surahs -->
+            <div id="quran-chunk-selector-container" class="quran-chunk-selector-box" hidden>
+              <div class="quran-chunk-header">
+                <span class="chunk-icon">📑</span>
+                <span class="chunk-title">تجزئة السورة إلى مقاطع دراسية (25 آية افتراضياً لتسهيل الاستيعاب وتجنب انقطاع الذكاء الاصطناعي):</span>
+              </div>
+              <div id="quran-chunk-buttons" class="quran-chunk-chips" role="group" aria-label="مقاطع السورة"></div>
+              <p class="quran-chunk-note">💡 عند مدارسة السور الطويلة، يضمن تقسيمها إلى مقاطع من 25 آية استيعاب الذكاء الاصطناعي لكافة الروابط والمتشابهات وأسباب النزول بدقة متناهية دون انقطاع.</p>
             </div>
 
             <!-- Custom Quran Text Input (Collapsible) -->
@@ -1258,6 +1268,14 @@
               <button type="button" id="quran-copy-summary-btn" class="subtle-btn small-btn">
                 <span class="btn-icon">📋</span>
                 <span class="btn-text">نسخ ملخص الحفظ</span>
+              </button>
+              <button type="button" id="quran-prev-chunk-btn" class="subtle-btn small-btn action-chunk-nav-btn" hidden>
+                <span class="btn-icon">⬅️</span>
+                <span class="btn-text">المقطع السابق</span>
+              </button>
+              <button type="button" id="quran-next-chunk-btn" class="primary-btn small-btn action-chunk-nav-btn" hidden>
+                <span class="btn-icon">📖</span>
+                <span class="btn-text">المقطع التالي (25 آية)</span>
               </button>
             </div>
           </div>

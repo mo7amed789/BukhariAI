@@ -330,7 +330,7 @@ public sealed class AiService : IAiService
 
     private async Task<HttpResponseMessage> SendWithRetryAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        const int maxAttempts = 3;
+        const int maxAttempts = 4;
         HttpRequestException? lastTransportException = null;
 
         for (int attempt = 1; attempt <= maxAttempts; attempt++)
@@ -356,7 +356,8 @@ public sealed class AiService : IAiService
                     _options.Provider, attempt, maxAttempts);
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(attempt), cancellationToken);
+            int delayMs = (int)(attempt * 2500);
+            await Task.Delay(TimeSpan.FromMilliseconds(delayMs), cancellationToken);
         }
 
         throw lastTransportException ?? new HttpRequestException("Vision request failed without a response.");

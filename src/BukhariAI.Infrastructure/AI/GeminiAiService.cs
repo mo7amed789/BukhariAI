@@ -45,11 +45,7 @@ public sealed class GeminiAiService : IAiService
         }
 
         string rawModel = _options.Model;
-        string initialModel = string.IsNullOrWhiteSpace(rawModel) || rawModel.Contains("2.5") || rawModel.Contains("3.6") ? "gemini-3.7-flash" : rawModel;
-        var candidateModels = new List<string> { initialModel };
-        if (!candidateModels.Contains("gemini-3.7-flash")) candidateModels.Add("gemini-3.7-flash");
-        if (!candidateModels.Contains("gemini-3.5-flash")) candidateModels.Add("gemini-3.5-flash");
-        if (!candidateModels.Contains("gemini-3.8-flash")) candidateModels.Add("gemini-3.8-flash");
+        var candidateModels = GeminiModelFallback.GetCandidateModels(rawModel);
 
         string? customInstructions = await _settingsService.GetAsync("AI:CustomResponseInstructions", cancellationToken);
         string systemPrompt = (await _settingsService.GetAsync("AI:LessonSystemPrompt", cancellationToken))
@@ -102,7 +98,7 @@ public sealed class GeminiAiService : IAiService
 
             _logger.LogInformation("Sending {PageCount} page screenshots to Gemini Vision model '{Model}' (HasContext: {HasContext}).", pageScreenshots.Count, model, context is not null);
 
-            for (int attempt = 1; attempt <= 2; attempt++)
+            for (int attempt = 1; attempt <= 4; attempt++)
             {
                 using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
                 request.Headers.Add("x-goog-api-key", apiKey);
@@ -118,21 +114,29 @@ public sealed class GeminiAiService : IAiService
                         break;
                     }
 
-                    // If rate limited or 5xx server error, retry or fall back
+                    // If rate limited or 5xx server error, retry with smart backoff
                     if ((int)response.StatusCode == 429 || (int)response.StatusCode >= 500)
                     {
-                        _logger.LogWarning("Gemini model '{Model}' returned retryable status {StatusCode} on attempt {Attempt}.", model, (int)response.StatusCode, attempt);
-                        await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+                        int backoffSeconds = attempt switch
+                        {
+                            1 => 3,
+                            2 => 6,
+                            3 => 10,
+                            _ => 15
+                        };
+                        _logger.LogWarning("Gemini model '{Model}' returned retryable status {StatusCode} on attempt {Attempt}. Waiting {Delay}s before retry...", model, (int)response.StatusCode, attempt, backoffSeconds);
+                        await Task.Delay(TimeSpan.FromSeconds(backoffSeconds), cancellationToken);
                         continue;
                     }
 
                     _logger.LogWarning("Gemini Vision API model '{Model}' returned error status {StatusCode}: {ResponseBody}.", model, (int)response.StatusCode, responseBody);
                     break;
                 }
-                catch (Exception ex) when (attempt < 2 && (ex is HttpRequestException || ex is IOException || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested)))
+                catch (Exception ex) when (attempt < 4 && (ex is HttpRequestException || ex is IOException || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested)))
                 {
-                    _logger.LogWarning(ex, "Transient transport error on attempt {Attempt} for model '{Model}'.", attempt, model);
-                    await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+                    int delay = attempt * 2;
+                    _logger.LogWarning(ex, "Transient transport error on attempt {Attempt} for model '{Model}'. Waiting {Delay}s before retry...", attempt, model, delay);
+                    await Task.Delay(TimeSpan.FromSeconds(delay), cancellationToken);
                 }
             }
 
@@ -268,11 +272,7 @@ public sealed class GeminiAiService : IAiService
         }
 
         string rawModel = _options.Model;
-        string initialModel = string.IsNullOrWhiteSpace(rawModel) || rawModel.Contains("2.5") || rawModel.Contains("3.6") ? "gemini-3.7-flash" : rawModel;
-        var candidateModels = new List<string> { initialModel };
-        if (!candidateModels.Contains("gemini-3.7-flash")) candidateModels.Add("gemini-3.7-flash");
-        if (!candidateModels.Contains("gemini-3.5-flash")) candidateModels.Add("gemini-3.5-flash");
-        if (!candidateModels.Contains("gemini-3.8-flash")) candidateModels.Add("gemini-3.8-flash");
+        var candidateModels = GeminiModelFallback.GetCandidateModels(rawModel);
 
         string? customInstructions = await _settingsService.GetAsync("AI:CustomResponseInstructions", cancellationToken);
         string systemPrompt = (await _settingsService.GetAsync("AI:LessonSystemPrompt", cancellationToken))
@@ -318,7 +318,7 @@ public sealed class GeminiAiService : IAiService
 
             _logger.LogInformation("Sending source text ({Length} chars) to Gemini model '{Model}'.", sourceText.Length, model);
 
-            for (int attempt = 1; attempt <= 2; attempt++)
+            for (int attempt = 1; attempt <= 4; attempt++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 try
@@ -334,16 +334,24 @@ public sealed class GeminiAiService : IAiService
 
                     if ((int)response.StatusCode == 429 || (int)response.StatusCode >= 500)
                     {
-                        _logger.LogWarning("Gemini text request attempt {Attempt} with model '{Model}' failed with status {StatusCode}.", attempt, model, (int)response.StatusCode);
-                        if (attempt < 2) await Task.Delay(1500, cancellationToken);
+                        int backoffSeconds = attempt switch
+                        {
+                            1 => 3,
+                            2 => 6,
+                            3 => 10,
+                            _ => 15
+                        };
+                        _logger.LogWarning("Gemini text request attempt {Attempt} with model '{Model}' returned retryable status {StatusCode}. Waiting {Delay}s before retry...", attempt, model, (int)response.StatusCode, backoffSeconds);
+                        await Task.Delay(TimeSpan.FromSeconds(backoffSeconds), cancellationToken);
                         continue;
                     }
                     break;
                 }
-                catch (HttpRequestException ex) when (attempt < 2)
+                catch (Exception ex) when (attempt < 4 && (ex is HttpRequestException || ex is IOException || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested)))
                 {
-                    _logger.LogWarning(ex, "Gemini text request transport error on attempt {Attempt} for model '{Model}'.", attempt, model);
-                    await Task.Delay(1000, cancellationToken);
+                    int delay = attempt * 2;
+                    _logger.LogWarning(ex, "Gemini text request transport error on attempt {Attempt} for model '{Model}'. Waiting {Delay}s before retry...", attempt, model, delay);
+                    await Task.Delay(TimeSpan.FromSeconds(delay), cancellationToken);
                 }
             }
 

@@ -48,21 +48,17 @@ public sealed class AiAssessmentEvaluator : IAssessmentEvaluator
             throw new InvalidOperationException("No API key is configured for AI assessment evaluation.");
         }
 
-        string model = string.IsNullOrWhiteSpace(_options.Model) || _options.Model.Contains("2.5")
-            ? (string.Equals(_options.Provider, "OpenCode", StringComparison.OrdinalIgnoreCase) ? "deepseek-v4-flash" : "gemini-3.6-flash")
-            : _options.Model;
-
         bool isOpenAiCompatible = string.Equals(_options.Provider, "OpenCode", StringComparison.OrdinalIgnoreCase) ||
                                   string.Equals(_options.Provider, "OpenAI", StringComparison.OrdinalIgnoreCase) ||
                                   (!string.IsNullOrWhiteSpace(_options.Endpoint) && _options.Endpoint.Contains("chat/completions"));
 
-        string defaultEndpoint = string.Equals(_options.Provider, "OpenCode", StringComparison.OrdinalIgnoreCase)
-            ? "https://opencode.ai/zen/v1/chat/completions"
-            : string.Equals(_options.Provider, "OpenAI", StringComparison.OrdinalIgnoreCase)
-                ? "https://api.openai.com/v1/chat/completions"
-                : $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
+        string baseModel = string.IsNullOrWhiteSpace(_options.Model)
+            ? (string.Equals(_options.Provider, "OpenCode", StringComparison.OrdinalIgnoreCase) ? "deepseek-v4-flash" : "gemini-3.7-flash")
+            : _options.Model;
 
-        string endpoint = string.IsNullOrWhiteSpace(_options.Endpoint) ? defaultEndpoint : _options.Endpoint;
+        var candidateModels = isOpenAiCompatible
+            ? new List<string> { baseModel }
+            : GeminiModelFallback.GetCandidateModels(_options.Model);
 
         string? customInstructions = await _settingsService.GetAsync("AI:CustomResponseInstructions", cancellationToken);
         string systemPrompt = (await _settingsService.GetAsync("AI:AssessmentSystemPrompt", cancellationToken))
@@ -75,119 +71,124 @@ public sealed class AiAssessmentEvaluator : IAssessmentEvaluator
 
         string userPrompt = BuildUserPrompt(input);
 
-        string jsonPayload;
-        if (isOpenAiCompatible)
+        foreach (var currentModel in candidateModels)
         {
-            var openAiPayload = new
-            {
-                model,
-                messages = new[]
-                {
-                    new { role = "system", content = systemPrompt },
-                    new { role = "user", content = userPrompt }
-                },
-                temperature = 0.1,
-                response_format = new { type = "json_object" }
-            };
-            jsonPayload = JsonSerializer.Serialize(openAiPayload);
-        }
-        else
-        {
-            var geminiPayload = new
-            {
-                system_instruction = new
-                {
-                    parts = new[]
-                    {
-                        new { text = systemPrompt }
-                    }
-                },
-                contents = new[]
-                {
-                    new
-                    {
-                        role = "user",
-                        parts = new[]
-                        {
-                            new { text = userPrompt }
-                        }
-                    }
-                },
-                generationConfig = new
-                {
-                    response_mime_type = "application/json",
-                    temperature = 0.1
-                }
-            };
-            jsonPayload = JsonSerializer.Serialize(geminiPayload);
-        }
+            string endpoint = string.IsNullOrWhiteSpace(_options.Endpoint)
+                ? (isOpenAiCompatible
+                    ? (string.Equals(_options.Provider, "OpenCode", StringComparison.OrdinalIgnoreCase)
+                        ? "https://opencode.ai/zen/v1/chat/completions"
+                        : "https://api.openai.com/v1/chat/completions")
+                    : $"https://generativelanguage.googleapis.com/v1beta/models/{currentModel}:generateContent?key={apiKey}")
+                : _options.Endpoint;
 
-        for (int attempt = 1; attempt <= 3; attempt++)
-        {
-            using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+            string jsonPayload;
             if (isOpenAiCompatible)
             {
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+                var openAiPayload = new
+                {
+                    model = currentModel,
+                    messages = new[]
+                    {
+                        new { role = "system", content = systemPrompt },
+                        new { role = "user", content = userPrompt }
+                    },
+                    temperature = 0.1,
+                    response_format = new { type = "json_object" }
+                };
+                jsonPayload = JsonSerializer.Serialize(openAiPayload);
             }
             else
             {
-                request.Headers.Add("x-goog-api-key", apiKey);
-            }
-            request.Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-
-            try
-            {
-                var response = await _httpClient.SendAsync(request, cancellationToken);
-                string responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
-
-                if (response.IsSuccessStatusCode)
+                var geminiPayload = new
                 {
-                    try
+                    system_instruction = new
                     {
-                        string rawJsonText;
-                        if (isOpenAiCompatible)
+                        parts = new[]
                         {
-                            using var doc = JsonDocument.Parse(responseBody);
-                            rawJsonText = doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString() ?? string.Empty;
+                            new { text = systemPrompt }
                         }
-                        else
-                        {
-                            rawJsonText = ExtractTextFromGeminiResponse(responseBody);
-                        }
-
-                        return ParseEvaluationResult(rawJsonText);
-                    }
-                    catch (Exception ex)
+                    },
+                    contents = new[]
                     {
-                        throw new InvalidOperationException("The AI evaluator returned an invalid response.", ex);
+                        new
+                        {
+                            role = "user",
+                            parts = new[]
+                            {
+                                new { text = userPrompt }
+                            }
+                        }
+                    },
+                    generationConfig = new
+                    {
+                        response_mime_type = "application/json",
+                        temperature = 0.1
                     }
-                }
+                };
+                jsonPayload = JsonSerializer.Serialize(geminiPayload);
+            }
 
-                if ((int)response.StatusCode == 429 || (int)response.StatusCode >= 500)
+            for (int attempt = 1; attempt <= 2; attempt++)
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+                if (isOpenAiCompatible)
                 {
-                    int delaySeconds = attempt switch
-                    {
-                        1 => 2,
-                        2 => 3,
-                        _ => 5
-                    };
-                    _logger.LogWarning("AI evaluation rate limit or error {StatusCode} on attempt {Attempt}. Waiting {Delay}s before retry...", (int)response.StatusCode, attempt, delaySeconds);
-                    await Task.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken);
-                    continue;
+                    request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
                 }
+                else
+                {
+                    request.Headers.Add("x-goog-api-key", apiKey);
+                }
+                request.Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
-                _logger.LogWarning("AI evaluation call returned non-success status {StatusCode}: {Body}", (int)response.StatusCode, responseBody);
-                break;
-            }
-            catch (Exception ex) when (attempt < 3 && (ex is HttpRequestException || ex is IOException || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested)))
-            {
-                _logger.LogWarning(ex, "Transient exception on evaluation attempt {Attempt}. Retrying in 2s...", attempt);
-                await Task.Delay(TimeSpan.FromSeconds(2 * attempt), cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "HTTP exception while evaluating the student's answer.");
-                throw;
+                try
+                {
+                    var response = await _httpClient.SendAsync(request, cancellationToken);
+                    string responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        try
+                        {
+                            string rawJsonText;
+                            if (isOpenAiCompatible)
+                            {
+                                using var doc = JsonDocument.Parse(responseBody);
+                                rawJsonText = doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString() ?? string.Empty;
+                            }
+                            else
+                            {
+                                rawJsonText = ExtractTextFromGeminiResponse(responseBody);
+                            }
+
+                            return ParseEvaluationResult(rawJsonText);
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new InvalidOperationException("The AI evaluator returned an invalid response.", ex);
+                        }
+                    }
+
+                    _logger.LogWarning("AI evaluation call on model '{Model}' returned status {StatusCode}: {Body}", currentModel, (int)response.StatusCode, responseBody);
+
+                    if ((int)response.StatusCode == 429 || (int)response.StatusCode == 404)
+                    {
+                        break; // Move to next candidate model immediately
+                    }
+
+                    if ((int)response.StatusCode >= 500 && attempt < 2)
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+                        continue;
+                    }
+
+                    break;
+                }
+                catch (Exception ex) when (attempt < 2 && (ex is HttpRequestException || ex is IOException || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested)))
+                {
+                    _logger.LogWarning(ex, "Transient transport error on attempt {Attempt} for model '{Model}'.", attempt, currentModel);
+                    await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+                }
             }
         }
 
@@ -273,7 +274,7 @@ public sealed class AiAssessmentEvaluator : IAssessmentEvaluator
                - understoodConcepts: قائمة بعناوين المفاهيم التي أثبت الطالب استيعابها (يجب أن يكون كل مفهوم عنواناً فقهياً موجزاً 2-5 كلمات، وممنوع إرجاع جمل كاملة أو نصوص مقطوعة).
                - missingConcepts: قائمة بالمفاهيم الأساسية المتوقعة التي أغفلها الطالب في إجابته (عناوين فقهية موجزة 2-5 كلمات).
                - misconceptions: قائمة بالمفاهيم التي فهمها الطالب خطأ أو خلط في الاستدلال بها (عناوين فقهية موجزة 2-5 كلمات).
-               - feedback: تغذية راجعة تعليمية بناءة باللغة العربية توضح للطالب مواطن الإجادة وتصحح له الخلل بلباقة.
+               - feedback: تغذية راجعة تعليمية وتربوية رصينة باللغة العربية الفصيحة، تجمع بين تشجيع الطالب والثناء على فهمه الصحيح، وبيان ما فاته بدقة ولطف وأدب علمي.
 
             مستويات التقييم (level):
             - Mastered: إجابة نموذجية ممتازة استوعبت المسألة وعمقتها وبينت وجه الاستدلال بدقة عالية (score >= 0.85).

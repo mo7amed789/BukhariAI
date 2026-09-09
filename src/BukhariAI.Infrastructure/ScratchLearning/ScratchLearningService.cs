@@ -275,10 +275,7 @@ public sealed class ScratchLearningService : IScratchLearningService
 
         if (provider.Equals("Gemini", StringComparison.OrdinalIgnoreCase))
         {
-            string model = string.IsNullOrWhiteSpace(rawModel) || rawModel.Contains("2.5") ? "gemini-3.6-flash" : rawModel;
-            string endpoint = string.IsNullOrWhiteSpace(customEndpoint)
-                ? $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-                : customEndpoint;
+            var candidateModels = GeminiModelFallback.GetCandidateModels(rawModel);
 
             var requestPayload = new
             {
@@ -303,46 +300,59 @@ public sealed class ScratchLearningService : IScratchLearningService
 
             string payloadJson = JsonSerializer.Serialize(requestPayload);
 
-            for (int attempt = 1; attempt <= 3; attempt++)
+            foreach (var model in candidateModels)
             {
-                try
+                string endpoint = string.IsNullOrWhiteSpace(customEndpoint)
+                    ? $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}"
+                    : customEndpoint;
+
+                for (int attempt = 1; attempt <= 2; attempt++)
                 {
-                    using var req = new HttpRequestMessage(HttpMethod.Post, endpoint);
-                    req.Headers.Add("x-goog-api-key", apiKey);
-                    req.Content = new StringContent(payloadJson, Encoding.UTF8, "application/json");
-
-                    using var resp = await _httpClient.SendAsync(req, cancellationToken);
-                    string body = await resp.Content.ReadAsStringAsync(cancellationToken);
-
-                    if (resp.IsSuccessStatusCode)
+                    try
                     {
-                        using var doc = JsonDocument.Parse(body);
-                        var root = doc.RootElement;
-                        if (root.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
+                        using var req = new HttpRequestMessage(HttpMethod.Post, endpoint);
+                        req.Headers.Add("x-goog-api-key", apiKey);
+                        req.Content = new StringContent(payloadJson, Encoding.UTF8, "application/json");
+
+                        using var resp = await _httpClient.SendAsync(req, cancellationToken);
+                        string body = await resp.Content.ReadAsStringAsync(cancellationToken);
+
+                        if (resp.IsSuccessStatusCode)
                         {
-                            var candidate = candidates[0];
-                            if (candidate.TryGetProperty("content", out var content) &&
-                                content.TryGetProperty("parts", out var parts) &&
-                                parts.GetArrayLength() > 0)
+                            using var doc = JsonDocument.Parse(body);
+                            var root = doc.RootElement;
+                            if (root.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
                             {
-                                return parts[0].GetProperty("text").GetString();
+                                var candidate = candidates[0];
+                                if (candidate.TryGetProperty("content", out var content) &&
+                                    content.TryGetProperty("parts", out var parts) &&
+                                    parts.GetArrayLength() > 0)
+                                {
+                                    return parts[0].GetProperty("text").GetString();
+                                }
                             }
                         }
+
+                        _logger.LogWarning("Gemini Scratch model '{Model}' attempt {Attempt} returned status {StatusCode}: {Body}", model, attempt, resp.StatusCode, body);
+
+                        if ((int)resp.StatusCode == 429 || (int)resp.StatusCode == 404)
+                        {
+                            break; // Move to next candidate model immediately
+                        }
+
+                        if ((int)resp.StatusCode >= 500 && attempt < 2)
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+                            continue;
+                        }
+
+                        break;
                     }
-
-                    _logger.LogWarning("Gemini Scratch generation returned status {StatusCode} on attempt {Attempt}", resp.StatusCode, attempt);
-
-                    if ((int)resp.StatusCode == 429 || (int)resp.StatusCode >= 500)
+                    catch (Exception ex) when (attempt < 2 && (ex is HttpRequestException || ex is IOException || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested)))
                     {
-                        await Task.Delay(TimeSpan.FromSeconds(2 * attempt), cancellationToken);
-                        continue;
+                        _logger.LogWarning(ex, "Transient transport error on Gemini Scratch model '{Model}' attempt {Attempt}.", model, attempt);
+                        await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
                     }
-                    break;
-                }
-                catch (Exception ex) when (attempt < 3 && (ex is HttpRequestException || ex is IOException || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested)))
-                {
-                    _logger.LogWarning(ex, "Transient error on attempt {Attempt} for Scratch generation.", attempt);
-                    await Task.Delay(TimeSpan.FromSeconds(2 * attempt), cancellationToken);
                 }
             }
         }

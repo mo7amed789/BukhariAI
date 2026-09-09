@@ -314,4 +314,37 @@ public class QuranAnalysisTests
         response.AyahAnalyses.Should().HaveCount(1);
         response.AyahAnalyses[0].AsbabNuzul.Should().Contain("يا عبادي");
     }
+
+    [Fact]
+    public void QuranPromptBuilder_ForLongSurah25AyahChunk_ShouldInstructConciseDepth()
+    {
+        var builder = new QuranPromptBuilder();
+        var request = new AnalyzeQuranRequest
+        {
+            SurahNumber = 2,
+            SurahName = "البقرة",
+            StartAyah = 1,
+            EndAyah = 25
+        };
+
+        string userPrompt = builder.BuildUserPrompt(request);
+        userPrompt.Should().Contain("البقرة");
+        userPrompt.Should().Contain("من الآية 1 إلى الآية 25");
+        userPrompt.Should().Contain("25 آية");
+    }
+
+    [Fact]
+    public void QuranDataCatalog_ChunkingBoundary_ShouldClassifySurahsCorrectly()
+    {
+        const int chunkSize = 25;
+        var baqarah = QuranDataCatalog.FindByNumber(2)!;
+        var fatiha = QuranDataCatalog.FindByNumber(1)!;
+        var mulk = QuranDataCatalog.FindByNumber(67)!;
+        var ikhlas = QuranDataCatalog.FindByNumber(112)!;
+
+        (baqarah.TotalAyat > chunkSize).Should().BeTrue();
+        (mulk.TotalAyat > chunkSize).Should().BeTrue();
+        (fatiha.TotalAyat > chunkSize).Should().BeFalse();
+        (ikhlas.TotalAyat > chunkSize).Should().BeFalse();
+    }
 }

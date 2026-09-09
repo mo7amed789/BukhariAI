@@ -44,21 +44,40 @@ public sealed class QuranAnalysisService : IQuranAnalysisService
         ArgumentNullException.ThrowIfNull(request);
         cancellationToken.ThrowIfCancellationRequested();
 
-        // Enrich request with metadata if available
-        if (request.SurahNumber.HasValue && string.IsNullOrWhiteSpace(request.SurahName))
+        // Enrich request with metadata and default range if available
+        var meta = request.SurahNumber.HasValue
+            ? QuranDataCatalog.FindByNumber(request.SurahNumber.Value)
+            : (!string.IsNullOrWhiteSpace(request.SurahName) ? QuranDataCatalog.FindByName(request.SurahName) : null);
+
+        if (meta != null)
         {
-            var meta = QuranDataCatalog.FindByNumber(request.SurahNumber.Value);
-            if (meta != null)
+            int start = request.StartAyah ?? 1;
+            int? end = request.EndAyah;
+
+            // If it's a long surah (> 25 verses) and no range was specified, default to 25 verses (1 - 25)
+            // so the AI model can handle the generation within safe token limits.
+            if (meta.TotalAyat > 25 && (!request.StartAyah.HasValue && !request.EndAyah.HasValue))
             {
-                request = new AnalyzeQuranRequest
-                {
-                    SurahNumber = meta.Number,
-                    SurahName = meta.Name,
-                    StartAyah = request.StartAyah,
-                    EndAyah = request.EndAyah,
-                    CustomText = request.CustomText
-                };
+                start = 1;
+                end = 25;
             }
+            else if (!end.HasValue)
+            {
+                end = meta.TotalAyat;
+            }
+
+            if (start < 1) start = 1;
+            if (end.HasValue && end.Value > meta.TotalAyat) end = meta.TotalAyat;
+            if (end.HasValue && end.Value < start) end = start;
+
+            request = new AnalyzeQuranRequest
+            {
+                SurahNumber = meta.Number,
+                SurahName = meta.Name,
+                StartAyah = start,
+                EndAyah = end,
+                CustomText = request.CustomText
+            };
         }
 
         string systemPrompt = _promptBuilder.BuildSystemPrompt();
@@ -148,10 +167,7 @@ public sealed class QuranAnalysisService : IQuranAnalysisService
 
         if (isGemini)
         {
-            string model = string.IsNullOrWhiteSpace(rawModel) || rawModel.Contains("2.5") ? "gemini-3.6-flash" : rawModel;
-            string endpoint = string.IsNullOrWhiteSpace(customEndpoint)
-                ? $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-                : customEndpoint;
+            var candidateModels = GeminiModelFallback.GetCandidateModels(rawModel);
 
             var requestPayload = new
             {
@@ -176,47 +192,62 @@ public sealed class QuranAnalysisService : IQuranAnalysisService
 
             string payloadJson = JsonSerializer.Serialize(requestPayload);
 
-            for (int attempt = 1; attempt <= 3; attempt++)
+            foreach (var model in candidateModels)
             {
-                try
+                string endpoint = string.IsNullOrWhiteSpace(customEndpoint)
+                    ? $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}"
+                    : customEndpoint;
+
+                _logger.LogInformation("Attempting Quran analysis with Gemini model '{Model}'.", model);
+
+                for (int attempt = 1; attempt <= 2; attempt++)
                 {
-                    using var req = new HttpRequestMessage(HttpMethod.Post, endpoint);
-                    req.Headers.Add("x-goog-api-key", apiKey);
-                    req.Content = new StringContent(payloadJson, Encoding.UTF8, "application/json");
-
-                    using var resp = await _httpClient.SendAsync(req, cancellationToken);
-                    string body = await resp.Content.ReadAsStringAsync(cancellationToken);
-
-                    if (resp.IsSuccessStatusCode)
+                    try
                     {
-                        using var doc = JsonDocument.Parse(body);
-                        var root = doc.RootElement;
-                        if (root.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
+                        using var req = new HttpRequestMessage(HttpMethod.Post, endpoint);
+                        req.Headers.Add("x-goog-api-key", apiKey);
+                        req.Content = new StringContent(payloadJson, Encoding.UTF8, "application/json");
+
+                        using var resp = await _httpClient.SendAsync(req, cancellationToken);
+                        string body = await resp.Content.ReadAsStringAsync(cancellationToken);
+
+                        if (resp.IsSuccessStatusCode)
                         {
-                            var candidate = candidates[0];
-                            if (candidate.TryGetProperty("content", out var content) &&
-                                content.TryGetProperty("parts", out var parts) &&
-                                parts.GetArrayLength() > 0)
+                            using var doc = JsonDocument.Parse(body);
+                            var root = doc.RootElement;
+                            if (root.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
                             {
-                                return parts[0].GetProperty("text").GetString();
+                                var candidate = candidates[0];
+                                if (candidate.TryGetProperty("content", out var content) &&
+                                    content.TryGetProperty("parts", out var parts) &&
+                                    parts.GetArrayLength() > 0)
+                                {
+                                    return parts[0].GetProperty("text").GetString();
+                                }
                             }
                         }
+
+                        _logger.LogWarning("Gemini model '{Model}' returned non-success status {StatusCode} on attempt {Attempt}: {ResponseBody}", model, resp.StatusCode, attempt, body);
+
+                        // If 429 (quota exceeded for this model) or 404 (model unavailable), immediately fall back to the next model
+                        if ((int)resp.StatusCode == 429 || (int)resp.StatusCode == 404)
+                        {
+                            break;
+                        }
+
+                        if ((int)resp.StatusCode >= 500 && attempt < 2)
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+                            continue;
+                        }
+
+                        break;
                     }
-
-                    _logger.LogWarning("Gemini Quran analysis returned non-success status {StatusCode} on attempt {Attempt}: {ResponseBody}", resp.StatusCode, attempt, body);
-
-                    if ((int)resp.StatusCode == 429 || (int)resp.StatusCode >= 500)
+                    catch (Exception ex) when (attempt < 2 && (ex is HttpRequestException || ex is IOException || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested)))
                     {
-                        await Task.Delay(TimeSpan.FromSeconds(2 * attempt), cancellationToken);
-                        continue;
+                        _logger.LogWarning(ex, "Transient transport error on attempt {Attempt} contacting Gemini model '{Model}' for Quran analysis.", attempt, model);
+                        await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
                     }
-
-                    break;
-                }
-                catch (Exception ex) when (attempt < 3 && (ex is HttpRequestException || ex is IOException || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested)))
-                {
-                    _logger.LogWarning(ex, "Transient transport/timeout exception on attempt {Attempt} contacting Gemini for Quran analysis. Retrying...", attempt);
-                    await Task.Delay(TimeSpan.FromSeconds(2 * attempt), cancellationToken);
                 }
             }
         }

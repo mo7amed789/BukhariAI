@@ -440,20 +440,20 @@ public sealed class LessonChatService : ILessonChatService
 
         var sb = new StringBuilder();
         sb.AppendLine("أنت «المعلم الذكي والباحث المتمرس في علوم الشريعة والحديث وكتب التراث» في منصة «دِراية AI».");
-        sb.AppendLine("مهمتك محاورة طالب العلم ومدارسة النصوص والمسائل معه بأسلوب علمي رصين وميسر، وتقديم إجابات مباشرة، ذكية، وتفاعلية تناسب قدر السؤال وسياقه المخصص.");
+        sb.AppendLine("مهمتك مدارسة النصوص والمسائل مع طالب العلم بأسلوب علمي رصين، مشرق، وميسر، وتقديم إجابات محررة تجمع بين دقة التحقيق اللفظي وحسن البيان وبلاغة الخطاب العربي.");
         sb.AppendLine();
-        sb.AppendLine("ضوابط وأسلوب الحوار والإجابة:");
-        sb.AppendLine("1. ادخل في صلب الإجابة مباشرة وبشكل طبيعي وحواري دون أي ديباجة مكررة أو خطب افتتاحية (تجنب البدء بالبسملة أو الحمدلة أو عبارات الترحيب النمطية المكررة في كل رسالة، مثل «# الحمد لله...» أو «أهلاً بك يا طالب العلم...»).");
-        sb.AppendLine("2. وازن بين الإيجاز والبيان: قدّم إجابة وافية ومركزة تناسب قدر السؤال؛ إذا كان السؤال عن مسألة محددة فبيّن حكمها وعلتها مباشرة، وإذا طلب تفصيلاً أو مقارنة فابسط الأقوال ووجوه الاستدلال.");
-        sb.AppendLine("3. اعتمد أسلوب الحوار التفاعلي السلس والواضح، وتجنب القوالب والمخططات المقولبة الجامدة (مثل التقسيم الآلي المفروض: أولاً / ثانياً / الخلاصة) إلا حين يقتضي موضوع السؤال تفريعاً طبيعياً.");
-        sb.AppendLine("4. استند إلى السياق العلمي للنصوص والأدلة المرفقة مع عزو الأقوال والضوابط الفقهية بدقة.");
-        sb.AppendLine("5. وضّح المصطلحات الغريبة وغريب الألفاظ واذكر وجه الاستدلال ومسلك الفقهاء أو حال الرواة متى تعلق السؤال بذلك.");
-        sb.AppendLine("6. اربط المسائل بالتطبيقات المعاصرة والفوائد التربوية والعملية متى كان ذلك ملائماً.");
-        sb.AppendLine("7. نسّق الإجابة بـ Markdown خفيف وأنيق (تمييز الكلمات المفتاحية بالخط **العريض**، ووضع نصوص الآيات والأحاديث والأقوال المأثورة بين أقواس « »، وتوزيع الفقرات بسلاسة).");
+        sb.AppendLine("ضوابط وأسلوب الحوار وضبط الصياغة (Tone & Style Guidelines):");
+        sb.AppendLine("1. الدخول في صلب الجواب مباشرة دون أي ديباجة مكررة أو مقدمات إنشائية مستهلكة؛ ادخل في المسألة بأسلوب حواري طبيعي وواضح.");
+        sb.AppendLine("2. فصاحة العبارة وجزالة اللفظ: صغ الكلام بلغة عربية فصيحة، متقنة، وسليمة التركيب، مع تجنب التقعير المتكلف أو التسطيح المخل.");
+        sb.AppendLine("3. الموازنة بين الإيجاز الوافي والبيان المحكم: إذا كان السؤال عن مسألة أو حكم فبيّن الجواب وعلته وضابطه مباشرة، وإذا طلب بسطاً ففصل الأقوال ووجوه الاستدلال بأدب وإنصاف.");
+        sb.AppendLine("4. سلاسة العرض والبعد عن القوالب المصطنعة: تجنب التقسيمات الآلية الجافة ما لم تقتضِ طبيعة المسألة تفريعاً علمياً منطقياً.");
+        sb.AppendLine("5. التحقيق اللفظي وتوضيح غريب الألفاظ والمصطلحات: بيّن دلالة الألفاظ المشكلة في سياق الحديث أو كلام الفقهاء بين هلالين بسلاسة.");
+        sb.AppendLine("6. التنسيق الأنيق بـ Markdown: تمييز المفاهيم بالخط **العريض**، وتطويق نصوص الآيات والأحاديث بأقواس « »، وتوزيع الأفكار في فقرات مريحة للقراءة.");
+        sb.AppendLine("7. اقتراح أسئلة متابعة ذكية (2 إلى 3 أسئلة نوعية تحفز على تعميق الفهم والاستنباط) مع ذكر أمهات المصادر المعتمدة.");
         sb.AppendLine();
         sb.AppendLine("يجب أن تكون الاستجابة حصراً بصيغة JSON الصالحة وفق المخطط التالي:");
         sb.AppendLine("{");
-        sb.AppendLine("  \"reply\": \"نص الإجابة المباشرة والشرح المنسق بـ Markdown دون ديباجة مكررة\",");
+        sb.AppendLine("  \"reply\": \"نص الإجابة المباشرة والشرح المنسق بـ Markdown بلغة عربية فصيحة ومتقنة\",");
         sb.AppendLine("  \"suggestedQuestions\": [\"سؤال متابعة ذكي 1\", \"سؤال متابعة ذكي 2\"],");
         sb.AppendLine("  \"sourcesCited\": [\"اسم المرجع/الكتاب 1\", \"اسم المرجع/الكتاب 2\"]");
         sb.AppendLine("}");
@@ -584,15 +584,12 @@ public sealed class LessonChatService : ILessonChatService
                         string.Equals(_options.Provider, "Gemini", StringComparison.OrdinalIgnoreCase);
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        cts.CancelAfter(TimeSpan.FromSeconds(60));
+        cts.CancelAfter(TimeSpan.FromMinutes(4));
 
         if (isGemini)
         {
             string rawModel = _options.Model;
-            string model = string.IsNullOrWhiteSpace(rawModel) || rawModel.Contains("2.5") ? "gemini-3.6-flash" : rawModel;
-            string endpoint = string.IsNullOrWhiteSpace(_options.Endpoint)
-                ? $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-                : _options.Endpoint;
+            var candidateModels = GeminiModelFallback.GetCandidateModels(rawModel);
 
             var contents = new List<object>();
 
@@ -650,31 +647,62 @@ public sealed class LessonChatService : ILessonChatService
                 }
             };
 
-            using var req = new HttpRequestMessage(HttpMethod.Post, endpoint);
-            req.Headers.Add("x-goog-api-key", apiKey);
-            req.Content = new StringContent(JsonSerializer.Serialize(requestPayload), Encoding.UTF8, "application/json");
+            string payloadJson = JsonSerializer.Serialize(requestPayload);
 
-            using var resp = await _httpClient.SendAsync(req, cts.Token);
-            string body = await resp.Content.ReadAsStringAsync(cancellationToken);
-
-            if (resp.IsSuccessStatusCode)
+            foreach (var model in candidateModels)
             {
-                using var doc = JsonDocument.Parse(body);
-                var root = doc.RootElement;
-                if (root.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
+                string endpoint = string.IsNullOrWhiteSpace(_options.Endpoint)
+                    ? $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}"
+                    : _options.Endpoint;
+
+                for (int attempt = 1; attempt <= 2; attempt++)
                 {
-                    var candidate = candidates[0];
-                    if (candidate.TryGetProperty("content", out var content) &&
-                        content.TryGetProperty("parts", out var parts) &&
-                        parts.GetArrayLength() > 0)
+                    using var req = new HttpRequestMessage(HttpMethod.Post, endpoint);
+                    req.Headers.Add("x-goog-api-key", apiKey);
+                    req.Content = new StringContent(payloadJson, Encoding.UTF8, "application/json");
+
+                    try
                     {
-                        return parts[0].GetProperty("text").GetString();
+                        using var resp = await _httpClient.SendAsync(req, cts.Token);
+                        string body = await resp.Content.ReadAsStringAsync(cancellationToken);
+
+                        if (resp.IsSuccessStatusCode)
+                        {
+                            using var doc = JsonDocument.Parse(body);
+                            var root = doc.RootElement;
+                            if (root.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
+                            {
+                                var candidate = candidates[0];
+                                if (candidate.TryGetProperty("content", out var content) &&
+                                    content.TryGetProperty("parts", out var parts) &&
+                                    parts.GetArrayLength() > 0)
+                                {
+                                    return parts[0].GetProperty("text").GetString();
+                                }
+                            }
+                        }
+
+                        _logger.LogWarning("Gemini model '{Model}' chat attempt {Attempt} returned status {StatusCode}: {Body}", model, attempt, (int)resp.StatusCode, body);
+
+                        if ((int)resp.StatusCode == 429 || (int)resp.StatusCode == 404)
+                        {
+                            break; // Move to next candidate model immediately
+                        }
+
+                        if ((int)resp.StatusCode >= 500 && attempt < 2)
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+                            continue;
+                        }
+
+                        break;
+                    }
+                    catch (Exception ex) when (attempt < 2 && (ex is HttpRequestException || ex is IOException || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested)))
+                    {
+                        _logger.LogWarning(ex, "Transient transport error on Gemini model '{Model}' chat attempt {Attempt}.", model, attempt);
+                        await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
                     }
                 }
-            }
-            else
-            {
-                _logger.LogWarning("Gemini API call failed with status {StatusCode}: {Body}", (int)resp.StatusCode, body);
             }
         }
         else
@@ -711,25 +739,43 @@ public sealed class LessonChatService : ILessonChatService
                 response_format = new { type = "json_object" }
             };
 
-            using var req = new HttpRequestMessage(HttpMethod.Post, endpoint);
-            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-            req.Content = new StringContent(JsonSerializer.Serialize(requestPayload), Encoding.UTF8, "application/json");
-
-            using var resp = await _httpClient.SendAsync(req, cancellationToken);
-            string body = await resp.Content.ReadAsStringAsync(cancellationToken);
-
-            if (resp.IsSuccessStatusCode)
+            for (int attempt = 1; attempt <= 3; attempt++)
             {
-                using var doc = JsonDocument.Parse(body);
-                return doc.RootElement
-                    .GetProperty("choices")[0]
-                    .GetProperty("message")
-                    .GetProperty("content")
-                    .GetString();
-            }
-            else
-            {
-                _logger.LogWarning("OpenAI API call failed with status {StatusCode}: {Body}", (int)resp.StatusCode, body);
+                using var req = new HttpRequestMessage(HttpMethod.Post, endpoint);
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+                req.Content = new StringContent(JsonSerializer.Serialize(requestPayload), Encoding.UTF8, "application/json");
+
+                try
+                {
+                    using var resp = await _httpClient.SendAsync(req, cts.Token);
+                    string body = await resp.Content.ReadAsStringAsync(cancellationToken);
+
+                    if (resp.IsSuccessStatusCode)
+                    {
+                        using var doc = JsonDocument.Parse(body);
+                        return doc.RootElement
+                            .GetProperty("choices")[0]
+                            .GetProperty("message")
+                            .GetProperty("content")
+                            .GetString();
+                    }
+
+                    if ((int)resp.StatusCode == 429 || (int)resp.StatusCode >= 500)
+                    {
+                        int backoff = attempt switch { 1 => 2, 2 => 5, _ => 8 };
+                        _logger.LogWarning("OpenAI chat attempt {Attempt} received retryable status {StatusCode}. Waiting {Delay}s before retry...", attempt, (int)resp.StatusCode, backoff);
+                        await Task.Delay(TimeSpan.FromSeconds(backoff), cancellationToken);
+                        continue;
+                    }
+
+                    _logger.LogWarning("OpenAI API call failed with status {StatusCode}: {Body}", (int)resp.StatusCode, body);
+                    break;
+                }
+                catch (Exception ex) when (attempt < 3 && (ex is HttpRequestException || ex is IOException || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested)))
+                {
+                    _logger.LogWarning(ex, "Transient transport error on OpenAI chat attempt {Attempt}. Retrying...", attempt);
+                    await Task.Delay(TimeSpan.FromSeconds(attempt * 2), cancellationToken);
+                }
             }
         }
 
@@ -790,25 +836,44 @@ public sealed class LessonChatService : ILessonChatService
             response_format = new { type = "json_object" }
         };
 
-        using var req = new HttpRequestMessage(HttpMethod.Post, _options.FallbackEndpoint);
-        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", fallbackKey);
-        req.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+        using var fallbackCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        fallbackCts.CancelAfter(TimeSpan.FromMinutes(4));
 
-        using var resp = await _httpClient.SendAsync(req, cancellationToken);
-        string body = await resp.Content.ReadAsStringAsync(cancellationToken);
+        for (int attempt = 1; attempt <= 2; attempt++)
+        {
+            using var req = new HttpRequestMessage(HttpMethod.Post, _options.FallbackEndpoint);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", fallbackKey);
+            req.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
-        if (resp.IsSuccessStatusCode)
-        {
-            using var doc = JsonDocument.Parse(body);
-            return doc.RootElement
-                .GetProperty("choices")[0]
-                .GetProperty("message")
-                .GetProperty("content")
-                .GetString();
-        }
-        else
-        {
-            _logger.LogWarning("Conduit Fallback API call failed with status {StatusCode}: {Body}", (int)resp.StatusCode, body);
+            try
+            {
+                using var resp = await _httpClient.SendAsync(req, fallbackCts.Token);
+                string body = await resp.Content.ReadAsStringAsync(cancellationToken);
+
+                if (resp.IsSuccessStatusCode)
+                {
+                    using var doc = JsonDocument.Parse(body);
+                    return doc.RootElement
+                        .GetProperty("choices")[0]
+                        .GetProperty("message")
+                        .GetProperty("content")
+                        .GetString();
+                }
+
+                if ((int)resp.StatusCode == 429 && attempt < 2)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken);
+                    continue;
+                }
+
+                _logger.LogWarning("Conduit Fallback API call failed with status {StatusCode}: {Body}", (int)resp.StatusCode, body);
+                break;
+            }
+            catch (Exception ex) when (attempt < 2 && (ex is HttpRequestException || ex is IOException || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested)))
+            {
+                _logger.LogWarning(ex, "Transient transport error on Fallback chat attempt {Attempt}. Retrying...", attempt);
+                await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+            }
         }
 
         return null;

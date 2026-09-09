@@ -219,15 +219,12 @@ public sealed class PersonBiographyService : IPersonBiographyService
                         string.Equals(_options.Provider, "Gemini", StringComparison.OrdinalIgnoreCase);
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        cts.CancelAfter(TimeSpan.FromSeconds(60));
+        cts.CancelAfter(TimeSpan.FromMinutes(4));
 
         if (isGemini)
         {
             string rawModel = _options.Model;
-            string model = string.IsNullOrWhiteSpace(rawModel) || rawModel.Contains("2.5") ? "gemini-3.6-flash" : rawModel;
-            string endpoint = string.IsNullOrWhiteSpace(_options.Endpoint)
-                ? $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-                : _options.Endpoint;
+            var candidateModels = GeminiModelFallback.GetCandidateModels(rawModel);
 
             var requestPayload = new
             {
@@ -250,31 +247,62 @@ public sealed class PersonBiographyService : IPersonBiographyService
                 }
             };
 
-            using var req = new HttpRequestMessage(HttpMethod.Post, endpoint);
-            req.Headers.Add("x-goog-api-key", apiKey);
-            req.Content = new StringContent(JsonSerializer.Serialize(requestPayload), Encoding.UTF8, "application/json");
+            string payloadJson = JsonSerializer.Serialize(requestPayload);
 
-            using var resp = await _httpClient.SendAsync(req, cts.Token);
-            string body = await resp.Content.ReadAsStringAsync(cancellationToken);
-
-            if (resp.IsSuccessStatusCode)
+            foreach (var model in candidateModels)
             {
-                using var doc = JsonDocument.Parse(body);
-                var root = doc.RootElement;
-                if (root.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
+                string endpoint = string.IsNullOrWhiteSpace(_options.Endpoint)
+                    ? $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}"
+                    : _options.Endpoint;
+
+                for (int attempt = 1; attempt <= 2; attempt++)
                 {
-                    var candidate = candidates[0];
-                    if (candidate.TryGetProperty("content", out var content) &&
-                        content.TryGetProperty("parts", out var parts) &&
-                        parts.GetArrayLength() > 0)
+                    using var req = new HttpRequestMessage(HttpMethod.Post, endpoint);
+                    req.Headers.Add("x-goog-api-key", apiKey);
+                    req.Content = new StringContent(payloadJson, Encoding.UTF8, "application/json");
+
+                    try
                     {
-                        return parts[0].GetProperty("text").GetString();
+                        using var resp = await _httpClient.SendAsync(req, cts.Token);
+                        string body = await resp.Content.ReadAsStringAsync(cancellationToken);
+
+                        if (resp.IsSuccessStatusCode)
+                        {
+                            using var doc = JsonDocument.Parse(body);
+                            var root = doc.RootElement;
+                            if (root.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
+                            {
+                                var candidate = candidates[0];
+                                if (candidate.TryGetProperty("content", out var content) &&
+                                    content.TryGetProperty("parts", out var parts) &&
+                                    parts.GetArrayLength() > 0)
+                                {
+                                    return parts[0].GetProperty("text").GetString();
+                                }
+                            }
+                        }
+
+                        _logger.LogWarning("Gemini model '{Model}' biography attempt {Attempt} returned status {StatusCode}: {Body}", model, attempt, resp.StatusCode, body);
+
+                        if ((int)resp.StatusCode == 429 || (int)resp.StatusCode == 404)
+                        {
+                            break; // Move to next candidate model immediately
+                        }
+
+                        if ((int)resp.StatusCode >= 500 && attempt < 2)
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+                            continue;
+                        }
+
+                        break;
+                    }
+                    catch (Exception ex) when (attempt < 2 && (ex is HttpRequestException || ex is IOException || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested)))
+                    {
+                        _logger.LogWarning(ex, "Transient transport error on Gemini model '{Model}' biography attempt {Attempt}.", model, attempt);
+                        await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
                     }
                 }
-            }
-            else
-            {
-                _logger.LogWarning("Gemini API returned status {Status}: {Body}", resp.StatusCode, body);
             }
         }
         else
@@ -296,25 +324,43 @@ public sealed class PersonBiographyService : IPersonBiographyService
                 response_format = new { type = "json_object" }
             };
 
-            using var req = new HttpRequestMessage(HttpMethod.Post, endpoint);
-            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-            req.Content = new StringContent(JsonSerializer.Serialize(requestPayload), Encoding.UTF8, "application/json");
-
-            using var resp = await _httpClient.SendAsync(req, cts.Token);
-            string body = await resp.Content.ReadAsStringAsync(cancellationToken);
-
-            if (resp.IsSuccessStatusCode)
+            for (int attempt = 1; attempt <= 3; attempt++)
             {
-                using var doc = JsonDocument.Parse(body);
-                return doc.RootElement
-                    .GetProperty("choices")[0]
-                    .GetProperty("message")
-                    .GetProperty("content")
-                    .GetString();
-            }
-            else
-            {
-                _logger.LogWarning("OpenAI-compatible API returned status {Status}: {Body}", resp.StatusCode, body);
+                using var req = new HttpRequestMessage(HttpMethod.Post, endpoint);
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+                req.Content = new StringContent(JsonSerializer.Serialize(requestPayload), Encoding.UTF8, "application/json");
+
+                try
+                {
+                    using var resp = await _httpClient.SendAsync(req, cts.Token);
+                    string body = await resp.Content.ReadAsStringAsync(cancellationToken);
+
+                    if (resp.IsSuccessStatusCode)
+                    {
+                        using var doc = JsonDocument.Parse(body);
+                        return doc.RootElement
+                            .GetProperty("choices")[0]
+                            .GetProperty("message")
+                            .GetProperty("content")
+                            .GetString();
+                    }
+
+                    if ((int)resp.StatusCode == 429 || (int)resp.StatusCode >= 500)
+                    {
+                        int backoff = attempt switch { 1 => 2, 2 => 5, _ => 8 };
+                        _logger.LogWarning("OpenAI biography attempt {Attempt} returned status {StatusCode}. Waiting {Delay}s...", attempt, resp.StatusCode, backoff);
+                        await Task.Delay(TimeSpan.FromSeconds(backoff), cancellationToken);
+                        continue;
+                    }
+
+                    _logger.LogWarning("OpenAI-compatible API returned status {Status}: {Body}", resp.StatusCode, body);
+                    break;
+                }
+                catch (Exception ex) when (attempt < 3 && (ex is HttpRequestException || ex is IOException || (ex is TaskCanceledException && !cancellationToken.IsCancellationRequested)))
+                {
+                    _logger.LogWarning(ex, "Transient transport error on OpenAI biography attempt {Attempt}. Retrying...", attempt);
+                    await Task.Delay(TimeSpan.FromSeconds(attempt * 2), cancellationToken);
+                }
             }
         }
 
@@ -363,27 +409,35 @@ public sealed class PersonBiographyService : IPersonBiographyService
             };
 
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(TimeSpan.FromSeconds(60));
+            cts.CancelAfter(TimeSpan.FromMinutes(4));
 
-            using var req = new HttpRequestMessage(HttpMethod.Post, fallbackEndpoint);
-            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", fallbackKey);
-            req.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-
-            using var resp = await _httpClient.SendAsync(req, cts.Token);
-            string body = await resp.Content.ReadAsStringAsync(cancellationToken);
-
-            if (resp.IsSuccessStatusCode)
+            for (int attempt = 1; attempt <= 2; attempt++)
             {
-                using var doc = JsonDocument.Parse(body);
-                return doc.RootElement
-                    .GetProperty("choices")[0]
-                    .GetProperty("message")
-                    .GetProperty("content")
-                    .GetString();
-            }
-            else
-            {
+                using var req = new HttpRequestMessage(HttpMethod.Post, fallbackEndpoint);
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", fallbackKey);
+                req.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+
+                using var resp = await _httpClient.SendAsync(req, cts.Token);
+                string body = await resp.Content.ReadAsStringAsync(cancellationToken);
+
+                if (resp.IsSuccessStatusCode)
+                {
+                    using var doc = JsonDocument.Parse(body);
+                    return doc.RootElement
+                        .GetProperty("choices")[0]
+                        .GetProperty("message")
+                        .GetProperty("content")
+                        .GetString();
+                }
+
+                if ((int)resp.StatusCode == 429 && attempt < 2)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken);
+                    continue;
+                }
+
                 _logger.LogWarning("Conduit Fallback API call for biography failed with status {StatusCode}: {Body}", (int)resp.StatusCode, body);
+                break;
             }
         }
         catch (Exception ex)
