@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: bukhariai-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: frankfurt
+    healthCheckPath: /
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: AI__ApiKey
+        sync: false
+      - key: AI__Provider
+        value: Gemini
+      - key: AI__Model
+        value: gemini-3.6-flash
+      - key: Jwt__SecretKey
+        generateValue: true
+      - key: Jwt__Issuer
+        value: BukhariAI
+      - key: Jwt__Audience
+        value: BukhariAIApp
+      - key: DisableHttpsRedirection
+        value: "true"
+      - key: EnableSwagger
+        value: "true"

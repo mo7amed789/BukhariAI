@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>دليل ومعمارية مشروع دِراية AI</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@300;400;500;700;800;900&display=swap');
+    
+    body {
+      font-family: 'Tajawal', sans-serif;
+    }
+    .font-quran {
+      font-family: 'Amiri', serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+    .glow-emerald {
+      box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.25);
+    }
+  </style>
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased p-4 md:p-8 min-h-screen">
+
+  <!-- Main Container -->
+  <div class="max-w-6xl mx-auto space-y-8">
+
+    <!-- Hero Header Card -->
+    <header class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 md:p-10 shadow-sm relative overflow-hidden glow-emerald">
+      <div class="absolute -top-12 -left-12 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-12 -right-12 w-48 h-48 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      
+      <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div>
+          <div class="flex items-center gap-3 mb-3">
+            <span class="px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold rounded-full">
+              ✨ المنظومة الشاملة v2.0
+            </span>
+            <span class="px-3 py-1 bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 text-xs font-bold rounded-full">
+              ⚡ .NET 10 & Clean Architecture
+            </span>
+            <span class="px-3 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs font-bold rounded-full">
+              ✅ 60/60 Tests Passed
+            </span>
+          </div>
+          <h1 class="text-3xl md:text-5xl font-black tracking-tight text-[var(--foreground)] mb-3">
+            منصة <span class="bg-gradient-to-l from-emerald-600 via-teal-600 to-teal-800 bg-clip-text text-transparent">دِراية AI</span> (BukhariAI)
+          </h1>
+          <p class="text-base md:text-lg text-[var(--muted-foreground)] max-w-3xl leading-relaxed">
+            المنظومة التفاعلية الذكية لمدارسة علوم القرآن، تحليلات الحديث النبوي، الخرائط المعرفية، وتطبيقات التعلّم التكيّفي ومكافحة النسيان.
+          </p>
+        </div>
+
+        <!-- Quick Stats Widget -->
+        <div class="grid grid-cols-2 gap-3 w-full md:w-auto shrink-0">
+          <div class="bg-[var(--background)] border border-[var(--border)] rounded-xl p-3 text-center">
+            <div class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">١١٤</div>
+            <div class="text-xs text-[var(--muted-foreground)]">سورة مفهرسة</div>
+          </div>
+          <div class="bg-[var(--background)] border border-[var(--border)] rounded-xl p-3 text-center">
+            <div class="text-2xl font-extrabold text-teal-600 dark:text-teal-400">SM-2</div>
+            <div class="text-xs text-[var(--muted-foreground)]">خوارزمية التكرار المتباعد</div>
+          </div>
+          <div class="bg-[var(--background)] border border-[var(--border)] rounded-xl p-3 text-center">
+            <div class="text-2xl font-extrabold text-amber-600 dark:text-amber-400">سير النبلاء</div>
+            <div class="text-xs text-[var(--muted-foreground)]">تراجم الرواة التلقائية</div>
+          </div>
+          <div class="bg-[var(--background)] border border-[var(--border)] rounded-xl p-3 text-center">
+            <div class="text-2xl font-extrabold text-rose-600 dark:text-rose-400">الوقف والابتداء</div>
+            <div class="text-xs text-[var(--muted-foreground)]">أحكام وعلامات المصحف</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs Bar -->
+    <nav class="flex items-center gap-2 overflow-x-auto pb-2 custom-scrollbar border-b border-[var(--border)]">
+      <button onclick="switchTab('arch')" id="tab-btn-arch" class="tab-button px-5 py-2.5 rounded-xl font-bold text-sm transition-all bg-emerald-600 text-white shadow-sm flex items-center gap-2 shrink-0">
+        <span>🏛️</span>
+        <span>المعمارية النظيفة (Clean Architecture)</span>
+      </button>
+      <button onclick="switchTab('workflow')" id="tab-btn-workflow" class="tab-button px-5 py-2.5 rounded-xl font-bold text-sm transition-all bg-[var(--card)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] flex items-center gap-2 shrink-0">
+        <span>🔄</span>
+        <span>سير العمل التفاعلي (Workflow Engine)</span>
+      </button>
+      <button onclick="switchTab('quran')" id="tab-btn-quran" class="tab-button px-5 py-2.5 rounded-xl font-bold text-sm transition-all bg-[var(--card)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] flex items-center gap-2 shrink-0">
+        <span>🛑</span>
+        <span>القرآن والوقف والتسميع</span>
+      </button>
+      <button onclick="switchTab('hadith')" id="tab-btn-hadith" class="tab-button px-5 py-2.5 rounded-xl font-bold text-sm transition-all bg-[var(--card)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] flex items-center gap-2 shrink-0">
+        <span>📜</span>
+        <span>الحديث وسير الأعلام</span>
+      </button>
+      <button onclick="switchTab('scratch')" id="tab-btn-scratch" class="tab-button px-5 py-2.5 rounded-xl font-bold text-sm transition-all bg-[var(--card)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] flex items-center gap-2 shrink-0">
+        <span>🎓</span>
+        <span>شرح من الصفر (Roadmap)</span>
+      </button>
+      <button onclick="switchTab('adaptive')" id="tab-btn-adaptive" class="tab-button px-5 py-2.5 rounded-xl font-bold text-sm transition-all bg-[var(--card)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] border border-[var(--border)] flex items-center gap-2 shrink-0">
+        <span>🧠</span>
+        <span>محرك التعلّم التكيّفي (SM-2)</span>
+      </button>
+    </nav>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 1: ARCHITECTURE -->
+    <!-- ========================================================================= -->
+    <section id="tab-pane-arch" class="tab-pane space-y-6">
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 md:p-8 shadow-sm">
+        <h2 class="text-2xl font-bold text-[var(--foreground)] mb-4 flex items-center gap-2">
+          <span>🏛️</span>
+          <span>طبقات النظام الأربعة (4-Layer Clean Architecture)</span>
+        </h2>
+        <p class="text-[var(--muted-foreground)] text-sm mb-6 leading-relaxed">
+          تم تصميم النظام ليكون مستقلاً تماماً عن أطر العمل، حيث تتجه التبعيات دائماً للداخل نحو طبقة النطاق Core Domain.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Layer 1: Domain -->
+          <div class="border border-emerald-500/30 bg-emerald-500/5 rounded-xl p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-2 text-base">
+                <span>📦</span>
+                <span>1. طبقة النطاق (BukhariAI.Domain)</span>
+              </h3>
+              <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-mono">Core</span>
+            </div>
+            <p class="text-xs text-[var(--muted-foreground)]">
+              تحتوي على الكيانات المركزية المجردة وقواعد العمل دون أي اعتمادية على مكتبات خارجية.
+            </p>
+            <div class="flex flex-wrap gap-1.5 text-xs font-mono">
+              <span class="bg-[var(--card)] border border-[var(--border)] px-2 py-1 rounded">Lesson</span>
+              <span class="bg-[var(--card)] border border-[var(--border)] px-2 py-1 rounded">LessonHadith</span>
+              <span class="bg-[var(--card)] border border-[var(--border)] px-2 py-1 rounded">Person (Biography)</span>
+              <span class="bg-[var(--card)] border border-[var(--border)] px-2 py-1 rounded">StudentConceptMastery</span>
+              <span class="bg-[var(--card)] border border-[var(--border)] px-2 py-1 rounded">AssessmentQuestion</span>
+            </div>
+          </div>
+
+          <!-- Layer 2: Application -->
+          <div class="border border-teal-500/30 bg-teal-500/5 rounded-xl p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-teal-700 dark:text-teal-300 flex items-center gap-2 text-base">
+                <span>⚙️</span>
+                <span>2. طبقة التطبيق (BukhariAI.Application)</span>
+              </h3>
+              <span class="text-xs px-2 py-0.5 rounded bg-teal-500/20 text-teal-600 dark:text-teal-400 font-mono">Use Cases</span>
+            </div>
+            <p class="text-xs text-[var(--muted-foreground)]">
+              تتضمن صياغة الـ Prompts، محركات الوقف والتفسير، وفهرس السور، وخوارزمية SM-2.
+            </p>
+            <div class="flex flex-wrap gap-1.5 text-xs font-mono">
+              <span class="bg-[var(--card)] border border-[var(--border)] px-2 py-1 rounded">QuranPromptBuilder</span>
+              <span class="bg-[var(--card)] border border-[var(--border)] px-2 py-1 rounded">QuranDataCatalog</span>
+              <span class="bg-[var(--card)] border border-[var(--border)] px-2 py-1 rounded">AdaptiveLearningService</span>
+              <span class="bg-[var(--card)] border border-[var(--border)] px-2 py-1 rounded">LessonPromptBuilder</span>
+            </div>
+          </div>
+
+          <!-- Layer 3: Infrastructure -->
+          <div class="border border-cyan-500/30 bg-cyan-500/5 rounded-xl p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-cyan-700 dark:text-cyan-300 flex items-center gap-2 text-base">
+                <span>🔌</span>
+                <span>3. البنية التحتية (BukhariAI.Infrastructure)</span>
+              </h3>
+              <span class="text-xs px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 font-mono">External</span>
+            </div>
+            <p class="text-xs text-[var(--muted-foreground)]">
+              EF Core 10، الاتصال بمزودات الذكاء الاصطناعي (Gemini / DeepSeek / Ollama)، وخدمات OCR والـ PDF.
+            </p>
+            <div class="flex flex-wrap gap-1.5 text-xs font-mono">
+              <span class="bg-[var(--card)] border border-[var(--border)] px-2 py-1 rounded">BukhariDbContext</span>
+              <span class="bg-[var(--card)] border border-[var(--border)] px-2 py-1 rounded">PersonBiographyService</span>
+              <span class="bg-[var(--card)] border border-[var(--border)] px-2 py-1 rounded">OcrService</span>
+              <span class="bg-[var(--card)] border border-[var(--border)] px-2 py-1 rounded">DocnetPdfProcessor</span>
+            </div>
+          </div>
+
+          <!-- Layer 4: API & UI -->
+          <div class="border border-indigo-500/30 bg-indigo-500/5 rounded-xl p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-indigo-700 dark:text-indigo-300 flex items-center gap-2 text-base">
+                <span>🌐</span>
+                <span>4. الواجهة البرمجية والعرض (BukhariAI.Api)</span>
+              </h3>
+              <span class="text-xs px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-mono">Web & UI</span>
+            </div>
+            <p class="text-xs text-[var(--muted-foreground)]">
+              Controllers سريعة مع معالجة الأخطاء، وواجهة SPA حديثة خفيفة تدعم التسميع والخرائط.
+            </p>
+            <div class="flex flex-wrap gap-1.5 text-xs font-mono">
+              <span class="bg-[var(--card)] border border-[var(--border)] px-2 py-1 rounded">QuranController</span>
+              <span class="bg-[var(--card)] border border-[var(--border)] px-2 py-1 rounded">LessonsController</span>
+              <span class="bg-[var(--card)] border border-[var(--border)] px-2 py-1 rounded">LearningController</span>
+              <span class="bg-[var(--card)] border border-[var(--border)] px-2 py-1 rounded">workspace.js / css</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: INTERACTIVE WORKFLOW -->
+    <!-- ========================================================================= -->
+    <section id="tab-pane-workflow" class="tab-pane hidden space-y-6">
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 md:p-8 shadow-sm">
+        <h2 class="text-2xl font-bold text-[var(--foreground)] mb-2 flex items-center gap-2">
+          <span>🔄</span>
+          <span>محاكي مسار تدفق البيانات التفاعلي (Interactive Data Pipeline)</span>
+        </h2>
+        <p class="text-[var(--muted-foreground)] text-sm mb-6">
+          اضغط على أي مرحلة لمشاهدة ما يحدث خلف الكواليس بين المتصفح، الـ API، قاعدة البيانات، والذكاء الاصطناعي:
+        </p>
+
+        <!-- Stepper Selector -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+          <button onclick="setWorkflowStep(1)" id="wf-step-btn-1" class="p-3 text-right rounded-xl border border-emerald-500 bg-emerald-500/10 font-semibold text-xs transition-all">
+            <div class="text-emerald-600 dark:text-emerald-400 font-bold mb-1">المرحلة ١</div>
+            <div>اختيار السورة والمدخلات</div>
+          </button>
+          <button onclick="setWorkflowStep(2)" id="wf-step-btn-2" class="p-3 text-right rounded-xl border border-[var(--border)] bg-[var(--background)] font-semibold text-xs transition-all">
+            <div class="text-[var(--muted-foreground)] font-bold mb-1">المرحلة ٢</div>
+            <div>هندسة الـ Prompt والتفسير</div>
+          </button>
+          <button onclick="setWorkflowStep(3)" id="wf-step-btn-3" class="p-3 text-right rounded-xl border border-[var(--border)] bg-[var(--background)] font-semibold text-xs transition-all">
+            <div class="text-[var(--muted-foreground)] font-bold mb-1">المرحلة ٣</div>
+            <div>معالجة واستجابة الـ AI</div>
+          </button>
+          <button onclick="setWorkflowStep(4)" id="wf-step-btn-4" class="p-3 text-right rounded-xl border border-[var(--border)] bg-[var(--background)] font-semibold text-xs transition-all">
+            <div class="text-[var(--muted-foreground)] font-bold mb-1">المرحلة ٤</div>
+            <div>بناء الخرائط والتسميع</div>
+          </button>
+        </div>
+
+        <!-- Dynamic Step Inspector Box -->
+        <div id="wf-step-content" class="bg-[var(--background)] border border-[var(--border)] rounded-xl p-6 space-y-4">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 3: QURAN, WAQF & DRILL ENGINE -->
+    <!-- ========================================================================= -->
+    <section id="tab-pane-quran" class="tab-pane hidden space-y-6">
+      <!-- Feature 1: Waqf & Ibtida' Interactive Explorer -->
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold text-[var(--foreground)] flex items-center gap-2">
+              <span class="text-rose-600">🛑</span>
+              <span>مواضع الوقف والابتداء والتوجيه التفسيري</span>
+            </h2>
+            <p class="text-[var(--muted-foreground)] text-sm mt-1">
+              تحليل أحكام الوقف وعلامات ضبط المصحف مع التوجيه التدبري وسر الوقف.
+            </p>
+          </div>
+          <span class="px-3 py-1 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold self-start md:self-auto">
+            ميزة مضافة حديثاً ✨
+          </span>
+        </div>
+
+        <!-- Signs Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5">
+          <div class="p-3 rounded-xl border border-red-500/30 bg-red-500/5 text-center space-y-1">
+            <span class="inline-block px-2.5 py-1 rounded-md bg-red-600 text-white font-bold font-quran text-lg">مـ</span>
+            <div class="text-xs font-bold text-red-600 dark:text-red-400">الوقف اللازم</div>
+            <div class="text-[10px] text-[var(--muted-foreground)]">يلزم الوقف لسلامة المعنى</div>
+          </div>
+          <div class="p-3 rounded-xl border border-teal-500/30 bg-teal-500/5 text-center space-y-1">
+            <span class="inline-block px-2.5 py-1 rounded-md bg-teal-600 text-white font-bold font-quran text-lg">قلي</span>
+            <div class="text-xs font-bold text-teal-600 dark:text-teal-400">الوقف أولى</div>
+            <div class="text-[10px] text-[var(--muted-foreground)]">الوقف أرجح من الوصل</div>
+          </div>
+          <div class="p-3 rounded-xl border border-blue-500/30 bg-blue-500/5 text-center space-y-1">
+            <span class="inline-block px-2.5 py-1 rounded-md bg-blue-600 text-white font-bold font-quran text-lg">ج</span>
+            <div class="text-xs font-bold text-blue-600 dark:text-blue-400">الجائز المستوي</div>
+            <div class="text-[10px] text-[var(--muted-foreground)]">جواز الوقف والوصل سواء</div>
+          </div>
+          <div class="p-3 rounded-xl border border-amber-500/30 bg-amber-500/5 text-center space-y-1">
+            <span class="inline-block px-2.5 py-1 rounded-md bg-amber-500 text-amber-950 font-bold font-quran text-lg">صلي</span>
+            <div class="text-xs font-bold text-amber-600 dark:text-amber-400">الوصل أولى</div>
+            <div class="text-[10px] text-[var(--muted-foreground)]">الوصل أرجح مع صحة الوقف</div>
+          </div>
+          <div class="p-3 rounded-xl border border-rose-500/30 bg-rose-500/5 text-center space-y-1">
+            <span class="inline-block px-2.5 py-1 rounded-md bg-rose-600 text-white font-bold font-quran text-lg">لا</span>
+            <div class="text-xs font-bold text-rose-600 dark:text-rose-400">الوقف الممنوع</div>
+            <div class="text-[10px] text-[var(--muted-foreground)]">لشدة تعلق ما بعده به</div>
+          </div>
+          <div class="p-3 rounded-xl border border-purple-500/30 bg-purple-500/5 text-center space-y-1">
+            <span class="inline-block px-2.5 py-1 rounded-md bg-purple-600 text-white font-bold font-quran text-base">∴ ∴</span>
+            <div class="text-xs font-bold text-purple-600 dark:text-purple-400">وقف التعانق</div>
+            <div class="text-[10px] text-[var(--muted-foreground)]">الوقف على أحدهما فقط</div>
+          </div>
+        </div>
+
+        <!-- Sample Live Waqf Card Demo -->
+        <div class="border border-[var(--border)] bg-[var(--background)] rounded-xl p-5 space-y-3">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded bg-teal-600 text-white font-quran font-bold text-sm">ج</span>
+              <span class="font-bold text-sm">سورة الملك — الآية ٢</span>
+            </div>
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              نوع الوقف: كافٍ
+            </span>
+          </div>
+          <p class="font-quran text-xl md:text-2xl text-emerald-800 dark:text-emerald-300 leading-relaxed bg-[var(--card)] p-4 rounded-lg border-r-4 border-teal-500">
+            ﴿ الَّذِي خَلَقَ الْمَوْتَ وَالْحَيَاةَ لِيَبْلُوَكُمْ <span class="bg-red-500/10 text-red-600 dark:text-red-400 px-2 py-0.5 rounded border border-red-500/20 underline">أَيُّكُمْ أَحْسَنُ عَمَلًا [ ج ]</span> وَهُوَ الْعَزِيزُ الْغَفُورُ ﴾
+          </p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <div class="p-3 rounded-lg bg-teal-500/5 border border-teal-500/20">
+              <strong class="text-teal-700 dark:text-teal-300 block mb-1">📖 التوجيه التفسيري:</strong>
+              الوقف على (عَمَلًا) كافٍ لانتهاء الغاية من خلق الموت والحياة وهي الابتلاء، والابتداء بما بعده جملة اسمية مقررة لصفات العزة والمغفرة.
+            </div>
+            <div class="p-3 rounded-lg bg-blue-500/5 border border-blue-500/20">
+              <strong class="text-blue-700 dark:text-blue-300 block mb-1">✨ إرشاد الابتداء:</strong>
+              يحسن الابتداء بقوله: ﴿ وَهُوَ الْعَزِيزُ الْغَفُورُ ﴾.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 2: Interactive Recitation Drill Demo -->
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold text-[var(--foreground)] flex items-center gap-2">
+            <span>🎯</span>
+            <span>ورشة التسميع التفاعلية وأنماط الإخفاء الذكي (Cloze Drill)</span>
+          </h2>
+          <p class="text-[var(--muted-foreground)] text-sm mt-1">
+            جرب النقر على الأنماط أدناه لاختبار استحضار الآية، وانقر على الكلمات المخفية لكشفها:
+          </p>
+        </div>
+
+        <!-- Mode Buttons -->
+        <div class="flex flex-wrap gap-2">
+          <button onclick="setClozeDemo('full')" id="cloze-btn-full" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white transition-all">إظهار كامل النص</button>
+          <button onclick="setClozeDemo('fasila')" id="cloze-btn-fasila" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[var(--background)] border border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all">إخفاء الفاصلة فقط</button>
+          <button onclick="setClozeDemo('half')" id="cloze-btn-half" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[var(--background)] border border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all">إخفاء نصف الكلمات</button>
+          <button onclick="setClozeDemo('blind')" id="cloze-btn-blind" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[var(--background)] border border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all">إخفاء الآية كاملة (تسميع)</button>
+        </div>
+
+        <!-- Live Interactive Cloze Container -->
+        <div class="border border-[var(--border)] bg-[var(--background)] rounded-xl p-6 text-center space-y-4">
+          <div class="text-xs text-[var(--muted-foreground)] font-mono">سورة الملك — الآية ١</div>
+          <div id="cloze-text-display" class="font-quran text-2xl md:text-3xl leading-loose text-emerald-800 dark:text-emerald-300">
+            <!-- Populated via JS -->
+          </div>
+          <div class="pt-2">
+            <button onclick="revealAllCloze()" class="px-4 py-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-xs font-bold hover:border-emerald-500 transition-all">
+              👁️ كشف جميع الكلمات المخفية
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 4: HADITH & BIOGRAPHIES -->
+    <!-- ========================================================================= -->
+    <section id="tab-pane-hadith" class="tab-pane hidden space-y-6">
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold text-[var(--foreground)] flex items-center gap-2">
+            <span>📜</span>
+            <span>منظومة تحليل الحديث النبوي وتراجم الأعلام (سير أعلام النبلاء)</span>
+          </h2>
+          <p class="text-[var(--muted-foreground)] text-sm mt-1">
+            استخراج الإسناد والمتن، وربط الرواة آلياً بسيرتهم التاريخية الموثقة مع التخزين المؤقت (EF Core Caching).
+          </p>
+        </div>
+
+        <!-- Interactive Narrator Card Demo -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="border border-[var(--border)] bg-[var(--background)] rounded-xl p-4 space-y-2">
+            <span class="text-xs text-emerald-600 dark:text-emerald-400 font-bold">راوٍ في السند:</span>
+            <h4 class="font-bold text-base">سفيان بن عيينة</h4>
+            <p class="text-xs text-[var(--muted-foreground)]">إمام الحجاز، أحد أعلام الحديث والفقه المتقنين.</p>
+            <button onclick="openBioModal('سفيان بن عيينة', 'سفيان بن عيينة بن ميمون الهلالي الكوفي ثم المكي (107 - 198 هـ). أحد أعلام الحديث النبوي، إمام الحجاز ومحدثها، ثقة حافظ واسع الرواية متقن. روى عن الزهري وعمرو بن دينار، وحدث عنه الشافعي وأحمد بن حنبل وعلي بن المديني. قال عنه الإمام الشافعي: لولا مالك وسفيان لذهب علم الحجاز.')" class="w-full mt-2 py-1.5 px-3 bg-emerald-600/10 hover:bg-emerald-600 text-emerald-600 hover:text-white dark:text-emerald-400 dark:hover:text-white border border-emerald-500/20 text-xs font-bold rounded-lg transition-all">
+              📖 عرض السيرة من سير أعلام النبلاء
+            </button>
+          </div>
+
+          <div class="border border-[var(--border)] bg-[var(--background)] rounded-xl p-4 space-y-2">
+            <span class="text-xs text-emerald-600 dark:text-emerald-400 font-bold">راوٍ في السند:</span>
+            <h4 class="font-bold text-base">عمرو بن دينار</h4>
+            <p class="text-xs text-[var(--muted-foreground)]">شيخ الحرم والمفتي، تابعي جليل ثقة ثبت.</p>
+            <button onclick="openBioModal('عمرو بن دينار', 'عمرو بن دينار المكي، الإمام الحافظ شيخ الحرم ومفتي مكة (46 - 126 هـ). تابعي جليل، لقي ابن عباس وابن عمر وجابراً وأبا هريرة. كان إماماً ثقة ثبتاً فقيهاً متقناً، يُعد من أوعية العلم وأركان الحديث.')" class="w-full mt-2 py-1.5 px-3 bg-emerald-600/10 hover:bg-emerald-600 text-emerald-600 hover:text-white dark:text-emerald-400 dark:hover:text-white border border-emerald-500/20 text-xs font-bold rounded-lg transition-all">
+              📖 عرض السيرة من سير أعلام النبلاء
+            </button>
+          </div>
+
+          <div class="border border-[var(--border)] bg-[var(--background)] rounded-xl p-4 space-y-2">
+            <span class="text-xs text-emerald-600 dark:text-emerald-400 font-bold">راوٍ في السند:</span>
+            <h4 class="font-bold text-base">جابر بن عبد الله</h4>
+            <p class="text-xs text-[var(--muted-foreground)]">الصحابي الجليل، مفتي المدينة وأحد المكثرين.</p>
+            <button onclick="openBioModal('جابر بن عبد الله', 'جابر بن عبد الله بن عمرو بن حرام الأنصاري السلمي (ت 78 هـ). صحابي جليل وأحد المكثرين من رواية الحديث عن النبي ﷺ. شهد بيعة العقبة الثانية مع أبيه، وشهد المشاهد كلها مع رسول الله ﷺ بعد بدر وأحد. كان له حلقة علمية كبرى في المسجد النبوي.')" class="w-full mt-2 py-1.5 px-3 bg-emerald-600/10 hover:bg-emerald-600 text-emerald-600 hover:text-white dark:text-emerald-400 dark:hover:text-white border border-emerald-500/20 text-xs font-bold rounded-lg transition-all">
+              📖 عرض السيرة من سير أعلام النبلاء
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 5: ADAPTIVE LEARNING & SM-2 ENGINE -->
+    <!-- ========================================================================= -->
+    <section id="tab-pane-adaptive" class="tab-pane hidden space-y-6">
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold text-[var(--foreground)] flex items-center gap-2">
+            <span>🧠</span>
+            <span>محاكي التكرار المتباعد ومنحنى النسيان (Spaced Repetition SM-2)</span>
+          </h2>
+          <p class="text-[var(--muted-foreground)] text-sm mt-1">
+            حرك المؤشر لتشاهد كيف يتراجع استيعاب المفهوم بمرور الأيام وكيف تتدخل الخوارزمية لجدولة المراجعة:
+          </p>
+        </div>
+
+        <div class="border border-[var(--border)] bg-[var(--background)] rounded-xl p-6 space-y-6">
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <label for="decay-slider" class="text-sm font-bold">عدد الأيام المنقضية منذ آخر مراجعة:</label>
+              <span id="days-val-badge" class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-bold text-xs">١٠ أيام</span>
+            </div>
+            <input type="range" id="decay-slider" min="0" max="45" value="10" class="w-full accent-emerald-600" oninput="updateDecaySimulation(this.value)" />
+          </div>
+
+          <!-- Live Dynamic Gauge -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+            <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]">
+              <div class="text-xs text-[var(--muted-foreground)] mb-1">درجة الإتقان الحالية</div>
+              <div id="mastery-score-val" class="text-3xl font-black text-emerald-600">82%</div>
+            </div>
+            <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]">
+              <div class="text-xs text-[var(--muted-foreground)] mb-1">الحالة الإدراكية</div>
+              <div id="mastery-status-val" class="text-base font-bold text-emerald-600">🟢 متقن وثابت</div>
+            </div>
+            <div class="p-4 rounded-xl bg-[var(--card)] border border-[var(--border)]">
+              <div class="text-xs text-[var(--muted-foreground)] mb-1">توصية النظام</div>
+              <div id="mastery-recommend-val" class="text-xs font-semibold text-[var(--muted-foreground)]">لا يلزم مراجعة فورية</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 6: SCRATCH LEARNING & ROADMAP -->
+    <!-- ========================================================================= -->
+    <section id="tab-pane-scratch" class="tab-pane space-y-6 hidden">
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 md:p-8 shadow-sm space-y-6">
+        <div>
+          <div class="flex items-center gap-3 mb-2">
+            <span class="px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold rounded-full">
+              🎓 المسار التأسيسي المتدرج
+            </span>
+            <span class="px-3 py-1 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 text-xs font-bold rounded-full">
+              🗺️ 4-Phase Progressive Roadmap
+            </span>
+          </div>
+          <h2 class="text-2xl font-bold text-[var(--foreground)]">
+            منظومة «شرح من الصفر» (Zero-to-Hero Foundation & Interactive Roadmap)
+          </h2>
+          <p class="text-[var(--muted-foreground)] text-sm leading-relaxed mt-2">
+            وحدة تعليمية تفاعلية متخصصة في تبسيط وتفكيك أدق المفاهيم التراثية والشرعية والحديثية، ونقل المتعلم من الصفر المطلق عبر 4 مستويات متدرجة، تشبيهات حسية واقعية، اختبارات قياس الفهم، ومساعد المعلم الذكي.
+          </p>
+        </div>
+
+        <!-- 4 Levels Breakdown Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-emerald-700 dark:text-emerald-300 text-sm">المستوى ١: التأسيس</span>
+              <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-600">اللبنة الأولى 🟢</span>
+            </div>
+            <p class="text-xs text-[var(--muted-foreground)]">
+              كسر حاجز الهيبة وبناء التصور البديهي بتشبيهات وأمثلة من الحياة اليومية دون تعقيد مصطلحات.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl border border-blue-500/30 bg-blue-500/5 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-blue-700 dark:text-blue-300 text-sm">المستوى ٢: البناء</span>
+              <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-600">قواعد الصنعة 🟡</span>
+            </div>
+            <p class="text-xs text-[var(--muted-foreground)]">
+              تأصيل المصطلحات العلمية وضبط القواعد الحاكمة وربطها بالأساس التأسيسي الأول.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-amber-700 dark:text-amber-300 text-sm">المستوى ٣: التطبيق</span>
+              <span class="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-600">ميدان العمل 🟠</span>
+            </div>
+            <p class="text-xs text-[var(--muted-foreground)]">
+              تحليل نصوص وأسانيد حقيقية من صحيح البخاري وكتب التراث وتطبيق القواعد عليها خطوة بخطوة.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-xl border border-purple-500/30 bg-purple-500/5 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-purple-700 dark:text-purple-300 text-sm">المستوى ٤: التعميق</span>
+              <span class="text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-600">رسوخ وتخصص 🟣</span>
+            </div>
+            <p class="text-xs text-[var(--muted-foreground)]">
+              دقائق المسائل، العلل الخفية، الفروق الاصطلاحية الدقيقة، وبناء الملكة العلمية المستقرة.
+            </p>
+          </div>
+        </div>
+
+        <!-- Curated Tracks Box -->
+        <div class="p-5 rounded-xl bg-[var(--background)] border border-[var(--border)] space-y-3">
+          <h4 class="font-bold text-sm text-[var(--foreground)] flex items-center gap-2">
+            <span>📚</span>
+            <span>المسارات التأسيسية الجاهزة فورياً في النظام (0ms Latency):</span>
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <div class="p-3 bg-[var(--card)] border border-[var(--border)] rounded-lg">
+              <div class="font-bold text-emerald-600 mb-1">📜 مدخل مصطلح الحديث</div>
+              <p class="text-[var(--muted-foreground)]">بنية المتن والسند، شروط الصحيح الخمسة، الشذوذ والعلة.</p>
+            </div>
+            <div class="p-3 bg-[var(--card)] border border-[var(--border)] rounded-lg">
+              <div class="font-bold text-teal-600 mb-1">🏛️ منهج صحيح البخاري</div>
+              <p class="text-[var(--muted-foreground)]">فقه التراجم، سر التكرار والتقطيع، المعلقات، وشرح فتح الباري.</p>
+            </div>
+            <div class="p-3 bg-[var(--card)] border border-[var(--border)] rounded-lg">
+              <div class="font-bold text-blue-600 mb-1">👥 علم الرجال والجرح والتعديل</div>
+              <p class="text-[var(--muted-foreground)]">العدالة والضبط، مراتب التوثيق والتضعيف، وقراءة كتب التراجم.</p>
+            </div>
+            <div class="p-3 bg-[var(--card)] border border-[var(--border)] rounded-lg">
+              <div class="font-bold text-amber-600 mb-1">🕋 أصول التفسير والتدبر</div>
+              <p class="text-[var(--muted-foreground)]">تفسير القرآن بالقرآن والسنة، أسباب النزول، والمناسبات.</p>
+            </div>
+            <div class="p-3 bg-[var(--card)] border border-[var(--border)] rounded-lg">
+              <div class="font-bold text-indigo-600 mb-1">✒️ مفاتيح النحو العربي</div>
+              <p class="text-[var(--muted-foreground)]">أركان الجملة، الحركات الإعرابية، والشرط في أحاديث البخاري.</p>
+            </div>
+            <div class="p-3 bg-[var(--card)] border border-[var(--border)] rounded-lg">
+              <div class="font-bold text-purple-600 mb-1">⚡ توليد ذكي لأي موضوع</div>
+              <p class="text-[var(--muted-foreground)]">اكتب أي موضوع مخصص ليقوم المحرك الذكي برسم خارطة طريق خاصة له.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Biography Modal -->
+  <div id="bio-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
+      <div class="flex justify-between items-center border-b border-[var(--border)] pb-3">
+        <h3 id="bio-modal-title" class="font-bold text-lg text-emerald-600 dark:text-emerald-400">سيرة الراوي</h3>
+        <button onclick="closeBioModal()" class="w-8 h-8 rounded-full bg-[var(--background)] hover:bg-red-500/10 hover:text-red-500 flex items-center justify-center transition-all">✕</button>
+      </div>
+      <div class="max-h-60 overflow-y-auto custom-scrollbar text-sm leading-relaxed text-[var(--foreground)]" id="bio-modal-body">
+        <!-- Content -->
+      </div>
+      <div class="pt-2 flex justify-end">
+        <button onclick="closeBioModal()" class="px-4 py-2 bg-[var(--background)] border border-[var(--border)] rounded-xl text-xs font-bold hover:border-emerald-500">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Logic -->
+  <script>
+    // Tab switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
+      document.querySelectorAll('.tab-button').forEach(b => {
+        b.classList.remove('bg-emerald-600', 'text-white');
+        b.classList.add('bg-[var(--card)]', 'text-[var(--muted-foreground)]');
+      });
+
+      const pane = document.getElementById('tab-pane-' + tabId);
+      const btn = document.getElementById('tab-btn-' + tabId);
+      if (pane) pane.classList.remove('hidden');
+      if (btn) {
+        btn.classList.add('bg-emerald-600', 'text-white');
+        btn.classList.remove('bg-[var(--card)]', 'text-[var(--muted-foreground)]');
+      }
+    }
+
+    // Workflow Stepper
+    const workflowSteps = {
+      1: {
+        title: "المرحلة ١: اختيار السورة والمدخلات",
+        desc: "يقوم المستخدم باختيار السورة (مثلاً: سورة الملك ٦٧) ونطاق الآيات من ١ إلى ٣٠ عبر واجهة المستخدم، وإرسال طلب POST /api/quran/analyze.",
+        payload: `{ "surahNumber": 67, "startAyah": 1, "endAyah": 30 }`
+      },
+      2: {
+        title: "المرحلة ٢: صياغة الـ Prompt والاستناد التراثي",
+        desc: "يقوم QuranPromptBuilder بحقن القواعد المستندة لكتب التفسير والوقف (نظم الدرر للبقاعي، منار الهدى للأشموني) وإلزام الذكاء الاصطناعي بمخطط JSON صارم.",
+        payload: `system_prompt: "أنت عالم متخصص في التفسير والوقف... استخرج thematicSections, ayahAnalyses, waqfAndIbtida, memorizationQuizzes..."`
+      },
+      3: {
+        title: "المرحلة ٣: معالجة واستجابة الذكاء الاصطناعي",
+        desc: "يحلل النموذج النص ويستخرج الفواصل، الأسرار التدبرية، اللطائف التجويدية، أحكام الوقف، وبنك الأسئلة، ثم يتم حفظ الدرس في قاعدة البيانات عبر EF Core.",
+        payload: `{ "surahInfo": {...}, "waqfAndIbtida": [...], "ayahAnalyses": [...], "lessonId": "d3b07384d113..." }`
+      },
+      4: {
+        title: "المرحلة ٤: العرض التفاعلي وورشة التسميع والوقف",
+        desc: "تبني الواجهة الأمامية الخريطة الذهنية البصرية، بطاقات الآيات مع أزرار الاستماع الصوتي ووضع علامات الحفظ، وبطاقات الوقف والابتداء، وورشة التسميع الإخفائي.",
+        payload: `UI State: Active tab "mindmap" | Audio player ready | Progress: 0/30 (0%)`
+      }
+    };
+
+    function setWorkflowStep(stepNum) {
+      for (let i = 1; i <= 4; i++) {
+        const btn = document.getElementById(`wf-step-btn-${i}`);
+        if (i === stepNum) {
+          btn.className = "p-3 text-right rounded-xl border border-emerald-500 bg-emerald-500/10 font-semibold text-xs transition-all";
+          btn.querySelector('div:first-child').className = "text-emerald-600 dark:text-emerald-400 font-bold mb-1";
+        } else {
+          btn.className = "p-3 text-right rounded-xl border border-[var(--border)] bg-[var(--background)] font-semibold text-xs transition-all";
+          btn.querySelector('div:first-child').className = "text-[var(--muted-foreground)] font-bold mb-1";
+        }
+      }
+
+      const data = workflowSteps[stepNum];
+      document.getElementById('wf-step-content').innerHTML = `
+        <h3 class="font-bold text-base text-emerald-600 dark:text-emerald-400">${data.title}</h3>
+        <p class="text-sm text-[var(--foreground)] leading-relaxed">${data.desc}</p>
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-lg p-3 font-mono text-xs text-[var(--muted-foreground)] overflow-x-auto">
+          <code>${data.payload}</code>
+        </div>
+      `;
+    }
+
+    // Cloze Interactive Demo
+    const ayahWords = ["تَبَارَكَ", "الَّذِي", "بِيَدِهِ", "الْمُلْكُ", "وَهُوَ", "عَلَىٰ", "كُلِّ", "شَيْءٍ", "قَدِيرٌ"];
+    let currentClozeMode = 'full';
+
+    function setClozeDemo(mode) {
+      currentClozeMode = mode;
+      ['full', 'fasila', 'half', 'blind'].forEach(m => {
+        const b = document.getElementById(`cloze-btn-${m}`);
+        if (m === mode) {
+          b.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white transition-all";
+        } else {
+          b.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[var(--background)] border border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-all";
+        }
+      });
+      renderClozeText();
+    }
+
+    function renderClozeText() {
+      const container = document.getElementById('cloze-text-display');
+      if (currentClozeMode === 'full') {
+        container.innerHTML = `<span>﴿ ${ayahWords.join(' ')} ﴾</span>`;
+      } else if (currentClozeMode === 'fasila') {
+        const visible = ayahWords.slice(0, -2).join(' ');
+        const hidden = ayahWords.slice(-2).join(' ');
+        container.innerHTML = `<span>﴿ ${visible} </span><span onclick="this.classList.remove('bg-emerald-500/20', 'text-transparent', 'select-none')" class="cursor-pointer bg-emerald-500/20 text-transparent select-none px-2 py-0.5 rounded border border-emerald-500/30 transition-all" title="اضغط للكشف">${hidden}</span><span> ﴾</span>`;
+      } else if (currentClozeMode === 'half') {
+        const html = ayahWords.map((w, idx) => {
+          if (idx % 2 === 1) {
+            return `<span onclick="this.classList.remove('bg-emerald-500/20', 'text-transparent', 'select-none')" class="cursor-pointer bg-emerald-500/20 text-transparent select-none px-2 py-0.5 rounded border border-emerald-500/30 transition-all" title="اضغط للكشف">${w}</span>`;
+          }
+          return `<span>${w}</span>`;
+        }).join(' ');
+        container.innerHTML = `<span>﴿ </span>${html}<span> ﴾</span>`;
+      } else if (currentClozeMode === 'blind') {
+        container.innerHTML = `<span>﴿ </span><span onclick="this.classList.remove('bg-emerald-500/20', 'text-transparent', 'select-none')" class="cursor-pointer bg-emerald-500/20 text-transparent select-none px-6 py-1 rounded border border-emerald-500/30 transition-all" title="اضغط للكشف">${ayahWords.join(' ')}</span><span> ﴾</span>`;
+      }
+    }
+
+    function revealAllCloze() {
+      document.querySelectorAll('#cloze-text-display span').forEach(el => {
+        el.classList.remove('bg-emerald-500/20', 'text-transparent', 'select-none');
+      });
+    }
+
+    // Bio Modal
+    function openBioModal(name, text) {
+      document.getElementById('bio-modal-title').textContent = `سيرة الإمام: ${name}`;
+      document.getElementById('bio-modal-body').textContent = text;
+      document.getElementById('bio-modal').classList.remove('hidden');
+    }
+    function closeBioModal() {
+      document.getElementById('bio-modal').classList.add('hidden');
+    }
+
+    // Adaptive Learning Decay Simulation
+    function updateDecaySimulation(days) {
+      document.getElementById('days-val-badge').textContent = `${days} أيام`;
+      const initialScore = 95;
+      const lambda = 0.035;
+      const score = Math.max(10, Math.round(initialScore * Math.exp(-lambda * days)));
+      
+      const scoreEl = document.getElementById('mastery-score-val');
+      const statusEl = document.getElementById('mastery-status-val');
+      const recEl = document.getElementById('mastery-recommend-val');
+
+      scoreEl.textContent = `${score}%`;
+
+      if (score >= 80) {
+        scoreEl.className = "text-3xl font-black text-emerald-600";
+        statusEl.className = "text-base font-bold text-emerald-600";
+        statusEl.textContent = "🟢 متقن وثابت";
+        recEl.textContent = "لا يلزم مراجعة فورية";
+      } else if (score >= 50) {
+        scoreEl.className = "text-3xl font-black text-amber-600";
+        statusEl.className = "text-base font-bold text-amber-600";
+        statusEl.textContent = "🟡 في مرحلة التراجع";
+        recEl.textContent = "يُستحسن جدولة مراجعة قريبة";
+      } else {
+        scoreEl.className = "text-3xl font-black text-rose-600";
+        statusEl.className = "text-base font-bold text-rose-600";
+        statusEl.textContent = "🔴 مهدد بالنسيان";
+        recEl.textContent = "⚠️ يحتاج تثبيت واختبار عاجل اليوم";
+      }
+    }
+
+    // Init defaults
+    setWorkflowStep(1);
+    setClozeDemo('fasila');
+  </script>
+</body>
+</html>

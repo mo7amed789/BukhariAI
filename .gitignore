@@ -1,0 +1,13 @@
+bin/
+obj/
+.vs/
+*.user
+ocr-benchmark/
+TestResults/
+appsettings.Development.json
+publish/
+.env
+test.cs
+artifacts/
+tessdata/
+*.traineddata

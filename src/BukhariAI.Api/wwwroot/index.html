@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#16382C" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>دِراية AI — مساحة التعلّم التفاعلية لكتب التراث</title>
+  <meta name="description" content="مساحة التعلّم الذكية لمدارسة واستيعاب كتب التراث والعلوم الشرعية بأسلوب تفاعلي وتوجيه مستمر" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="/workspace.css?v=20260909-auth-v3" />
+  <script>
+    // Automatic ngrok abuse-interstitial skip for all HTTP fetches
+    (function () {
+      var _origFetch = window.fetch;
+      if (_origFetch) {
+        window.fetch = function (resource, init) {
+          init = init || {};
+          var headers = new Headers(init.headers || {});
+          if (!headers.has('ngrok-skip-browser-warning')) {
+            headers.set('ngrok-skip-browser-warning', 'true');
+          }
+          return _origFetch.call(this, resource, Object.assign({}, init, { headers: headers }));
+        };
+      }
+    })();
+  </script>
+</head>
+<body>
+  <!-- Top App Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-logo" aria-hidden="true">
+          <img src="/favicon.svg" alt="دِراية AI" class="brand-logo-img" width="40" height="40" />
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-title">دِراية AI</h1>
+        </div>
+      </div>
+
+      <!-- Navigation Bar with Scroll Arrows -->
+      <div class="nav-scroll-wrapper" id="nav-scroll-wrapper">
+        <button type="button" id="nav-scroll-right-btn" class="nav-scroll-arrow right" aria-label="التمرير لليمين" title="التمرير لليمين" hidden>
+          <span aria-hidden="true">›</span>
+        </button>
+
+        <nav class="app-nav" id="app-nav" aria-label="التنقل الرئيسي">
+          <button id="nav-dashboard-btn" class="nav-btn active" data-view="dashboard">
+            <span class="nav-icon" aria-hidden="true">📊</span>
+            <span>مساحة التعلّم</span>
+          </button>
+          <button id="nav-lessons-btn" class="nav-btn" data-view="lessons">
+            <span class="nav-icon" aria-hidden="true">📖</span>
+            <span>الدروس</span>
+          </button>
+          <button id="nav-reviews-btn" class="nav-btn" data-view="reviews">
+            <span class="nav-icon" aria-hidden="true">🔄</span>
+            <span>المراجعة والتثبيت</span>
+          </button>
+          <button id="nav-quran-btn" class="nav-btn" data-view="quran">
+            <span class="nav-icon" aria-hidden="true">🕋</span>
+            <span>تحفيظ وتدبر القرآن</span>
+          </button>
+          <button id="nav-upload-btn" class="nav-btn" data-view="upload">
+            <span class="nav-icon" aria-hidden="true">➕</span>
+            <span>إضافة صفحات</span>
+          </button>
+          <button id="nav-settings-btn" class="nav-btn" data-view="settings">
+            <span class="nav-icon" aria-hidden="true">⚙️</span>
+            <span>الإعدادات</span>
+          </button>
+        </nav>
+
+        <button type="button" id="nav-scroll-left-btn" class="nav-scroll-arrow left" aria-label="التمرير لليسار" title="التمرير لليسار" hidden>
+          <span aria-hidden="true">‹</span>
+        </button>
+      </div>
+
+      <div class="book-selector-wrapper">
+        <label for="book-select" class="sr-only">اختر الكتاب:</label>
+        <select id="book-select" class="book-select" title="اختر الكتاب الدراسي"></select>
+      </div>
+
+      <!-- Font Size Resizer Controls -->
+      <div class="font-size-control-group" role="group" aria-label="التحكم في حجم الخط">
+        <button type="button" id="font-size-dec-btn" class="font-size-btn" title="تصغير الخط (Ctrl+-)" aria-label="تصغير الخط">
+          <span class="font-btn-symbol">A<sup>-</sup></span>
+        </button>
+        <button type="button" id="font-size-reset-btn" class="font-size-btn font-size-indicator" title="إعادة تعيين حجم الخط (100%)" aria-label="إعادة تعيين حجم الخط">
+          <span id="font-size-label">100%</span>
+        </button>
+        <button type="button" id="font-size-inc-btn" class="font-size-btn" title="تكبير الخط (Ctrl++)" aria-label="تكبير الخط">
+          <span class="font-btn-symbol">A<sup>+</sup></span>
+        </button>
+      </div>
+
+      <button id="theme-toggle" class="theme-toggle-btn" type="button" aria-pressed="false" aria-label="تفعيل الوضع الداكن" title="تفعيل الوضع الداكن">
+        <span class="theme-toggle-icon" aria-hidden="true">☾</span>
+        <span class="theme-toggle-label">الوضع الداكن</span>
+      </button>
+
+      <!-- Unauthenticated Quick Auth Buttons -->
+      <div class="auth-guest-buttons" id="auth-guest-buttons">
+        <button type="button" id="header-login-btn" class="header-auth-btn header-login-btn" title="تسجيل الدخول">
+          <span class="btn-icon" aria-hidden="true">🔑</span>
+          <span>تسجيل الدخول</span>
+        </button>
+        <button type="button" id="header-register-btn" class="header-auth-btn header-register-btn" title="إنشاء حساب جديد">
+          <span class="btn-icon" aria-hidden="true">✨</span>
+          <span>حساب جديد</span>
+        </button>
+      </div>
+
+      <!-- Authenticated User Profile Menu -->
+      <div class="user-auth-wrapper" id="user-auth-wrapper" hidden>
+        <button type="button" id="user-profile-btn" class="user-profile-btn" aria-haspopup="true" aria-expanded="false" title="حساب المستخدم">
+          <span class="user-avatar-icon" aria-hidden="true">👤</span>
+          <span id="user-display-name" class="user-display-name">مستخدم</span>
+          <span class="dropdown-chevron" aria-hidden="true">▾</span>
+        </button>
+        <div id="user-dropdown-menu" class="user-dropdown-menu" hidden>
+          <div class="user-info-header" id="user-info-header">
+            <span class="user-badge" id="user-role-badge">طالب علم</span>
+            <strong id="dropdown-username">المستخدم</strong>
+            <small id="dropdown-email"></small>
+          </div>
+          <div class="user-dropdown-divider"></div>
+          <button type="button" id="logout-btn" class="dropdown-item text-danger">
+            <span>🚪 تسجيل الخروج</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Global Alerts & Notice Toast -->
+  <div id="notice-toast" class="notice-toast" role="alert" aria-live="assertive" hidden>
+    <div class="toast-icon" id="toast-icon">ℹ️</div>
+    <div class="toast-body">
+      <strong id="toast-title">تنبيه</strong>
+      <p id="toast-message"></p>
+    </div>
+    <button id="toast-close" class="toast-close-btn" aria-label="إغلاق التنبيه">&times;</button>
+  </div>
+
+  <main class="main-content">
+    <!-- VIEW 1: WORKSPACE DASHBOARD -->
+    <section id="view-dashboard" class="workspace-view active" aria-labelledby="dashboard-heading">
+      <h2 id="dashboard-heading" class="sr-only">لوحة التعلّم الرئيسية</h2>
+
+      <!-- Tutor Next Action Hero Card -->
+      <div id="next-action-card" class="next-action-hero" aria-live="polite">
+        <div class="hero-header">
+          <span class="eyebrow-badge">
+            <span class="pulse-dot" aria-hidden="true"></span>
+            خطوتك التالية بإرشاد المعلم
+          </span>
+          <span id="next-action-type" class="action-type-pill">جاري التحميل...</span>
+        </div>
+        <div class="hero-body">
+          <h3 id="next-action-title" class="hero-title">جاري تحديد خطوتك التعليمية المناسبة...</h3>
+          <p id="next-action-reason" class="hero-description">يقوم المعلم الذكي بتحليل مسار تعلّمك وتحديد الخطوة الأكثر فائدة لك الآن.</p>
+          <div class="hero-meta">
+            <div id="next-action-pages" class="meta-item">
+              <span class="meta-label">الصفحات:</span>
+              <span class="meta-value">—</span>
+            </div>
+            <div id="next-action-focus" class="meta-item">
+              <span class="meta-label">المسار:</span>
+              <span class="meta-value">تعلّم مخصص</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <button id="continue-learning-btn" class="primary-btn hero-btn">
+            <span class="btn-text">متابعة التعلّم الآن</span>
+            <span class="btn-icon" aria-hidden="true">←</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Academic Metrics -->
+      <div class="section-container">
+        <div class="section-title-row">
+          <h3 class="section-title">تقدّمك الأكاديمي</h3>
+          <span class="section-subtitle">بيانات حقيقية مبنية على ما استوعبته وأثبته في التقييم</span>
+        </div>
+        <div class="metrics-grid" id="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon">📚</div>
+            <div class="metric-info">
+              <strong id="metric-completed-lessons" class="metric-number">0</strong>
+              <span class="metric-label">دروس مكتملة</span>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">💡</div>
+            <div class="metric-info">
+              <strong id="metric-understood-concepts" class="metric-number">0</strong>
+              <span class="metric-label">مفاهيم مستوعبة</span>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">⭐</div>
+            <div class="metric-info">
+              <strong id="metric-mastered-concepts" class="metric-number">0</strong>
+              <span class="metric-label">مفاهيم متقنة</span>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">🎯</div>
+            <div class="metric-info">
+              <strong id="metric-weak-concepts" class="metric-number">0</strong>
+              <span class="metric-label">مفاهيم قيد التثبيت</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Lessons List -->
+      <div class="section-container mt-large">
+        <div class="section-title-row">
+          <div>
+            <h3 class="section-title">دروس الكتاب</h3>
+            <span class="section-subtitle">تصفح الدروس المسجلة وابدأ قراءة أي درس</span>
+          </div>
+          <div class="lessons-pagination-controls" hidden>
+            <button type="button" class="pagination-arrow-btn lessons-prev-arrow" aria-label="الدروس السابقة" title="الدروس السابقة" disabled>
+              <span aria-hidden="true">→</span>
+              <span>السابق</span>
+            </button>
+            <span class="pagination-indicator lessons-page-indicator">١ / ١</span>
+            <button type="button" class="pagination-arrow-btn lessons-next-arrow" aria-label="المزيد من الدروس" title="المزيد من الدروس">
+              <span>المزيد</span>
+              <span aria-hidden="true">←</span>
+            </button>
+          </div>
+        </div>
+        <div id="dashboard-lessons-list" class="lessons-grid">
+          <div class="empty-state">جاري تحميل الدروس...</div>
+        </div>
+        <div class="lessons-pagination-bottom-row" style="margin-top: 16px; display: flex; justify-content: center;">
+          <div class="lessons-pagination-controls" hidden>
+            <button type="button" class="pagination-arrow-btn lessons-prev-arrow" aria-label="الدروس السابقة" title="الدروس السابقة" disabled>
+              <span aria-hidden="true">→</span>
+              <span>السابق</span>
+            </button>
+            <span class="pagination-indicator lessons-page-indicator">١ / ١</span>
+            <button type="button" class="pagination-arrow-btn lessons-next-arrow" aria-label="المزيد من الدروس" title="المزيد من الدروس">
+              <span>المزيد</span>
+              <span aria-hidden="true">←</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: LESSONS LIBRARY -->
+    <section id="view-lessons" class="workspace-view" aria-labelledby="lessons-heading" hidden>
+      <div class="section-title-row lessons-library-header">
+        <div>
+          <h2 id="lessons-heading" class="section-title">الدروس</h2>
+          <p class="section-subtitle">كل عنوان يمثل درسًا مستقلًا. بعد إضافة صفحات جديدة ستجد الدرس هنا مباشرة.</p>
+        </div>
+        <div class="header-buttons-row">
+          <button id="lessons-open-chat-btn" class="secondary-btn" type="button">
+            <span aria-hidden="true">💬</span>
+            <span>استفسر مع المعلم الذكي</span>
+          </button>
+          <button id="lessons-add-pages-btn" class="primary-btn">
+            <span aria-hidden="true">➕</span>
+            <span>إضافة صفحات جديدة</span>
+          </button>
+        </div>
+      </div>
+      <div id="lessons-list" class="lessons-grid lessons-library-grid">
+        <div class="empty-state">جاري تحميل الدروس...</div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: REVIEWS & INTERACTIVE CONSOLIDATION -->
+    <section id="view-reviews" class="workspace-view" aria-labelledby="reviews-heading" hidden>
+      <!-- Reviews Header & Stats -->
+      <div class="reviews-header-banner">
+        <div class="reviews-header-info">
+          <div class="header-badge-row">
+            <span class="eyebrow-badge">
+              <span class="pulse-dot" aria-hidden="true"></span>
+              منظومة التثبيت والاسترجاع النشط
+            </span>
+          </div>
+          <h2 id="reviews-heading" class="reviews-main-title">المراجعة والتثبيت التفاعلي</h2>
+          <p class="reviews-main-desc">
+            رسّخ ما تعلمته عبر جلسات التثبيت الذكية المعالجة للبس، وبطاقات التكرار المتباعد، واختبارات الاسترجاع السريع، ومصفوفة إتقان مفاهيم الكتاب.
+          </p>
+        </div>
+
+        <div class="reviews-stats-chips">
+          <div class="stat-chip due-chip">
+            <span class="chip-icon">🔄</span>
+            <div class="chip-content">
+              <span class="chip-label">مستحق للمراجعة</span>
+              <strong id="reviews-summary-due" class="chip-value">0</strong>
+            </div>
+          </div>
+          <div class="stat-chip weak-chip">
+            <span class="chip-icon">🎯</span>
+            <div class="chip-content">
+              <span class="chip-label">قيد التثبيت والتركيز</span>
+              <strong id="reviews-summary-weak" class="chip-value">0</strong>
+            </div>
+          </div>
+          <div class="stat-chip total-chip">
+            <span class="chip-icon">📊</span>
+            <div class="chip-content">
+              <span class="chip-label">إجمالي المفاهيم النشطة</span>
+              <strong id="reviews-summary-total" class="chip-value">0</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons Bar -->
+      <div class="reviews-quick-actions">
+        <button type="button" id="start-auto-reinforce-btn" class="primary-btn glow-btn">
+          <span class="btn-icon" aria-hidden="true">🧠</span>
+          <span>بدء جلسة تثبيت ذكية للمسائل المستحقة</span>
+        </button>
+        <button type="button" id="quick-start-flashcards-btn" class="secondary-btn">
+          <span class="btn-icon" aria-hidden="true">🗂️</span>
+          <span>جولة بطاقات الفلاش كارد</span>
+        </button>
+        <button type="button" id="quick-start-quiz-btn" class="secondary-btn">
+          <span class="btn-icon" aria-hidden="true">✍️</span>
+          <span>اختبار مراجعة سريع (٣ أسئلة)</span>
+        </button>
+      </div>
+
+      <!-- Reviews Sub-Navigation Tabs -->
+      <div class="reviews-subtabs" role="tablist" aria-label="أقسام المراجعة والتثبيت">
+        <button type="button" class="review-tab-btn active" data-review-tab="plan" role="tab" aria-selected="true">
+          <span class="tab-icon">🎯</span>
+          <span>خطة التثبيت والمراجعة</span>
+        </button>
+        <button type="button" class="review-tab-btn" data-review-tab="flashcards" role="tab" aria-selected="false">
+          <span class="tab-icon">🗂️</span>
+          <span>بطاقات الاسترجاع الذكية (Flashcards)</span>
+        </button>
+        <button type="button" class="review-tab-btn" data-review-tab="quiz" role="tab" aria-selected="false">
+          <span class="tab-icon">✍️</span>
+          <span>اختبار المراجعة السريع</span>
+        </button>
+        <button type="button" class="review-tab-btn" data-review-tab="matrix" role="tab" aria-selected="false">
+          <span class="tab-icon">📊</span>
+          <span>مصفوفة وخريطة المفاهيم</span>
+        </button>
+      </div>
+
+      <!-- SUB-TAB 1: CONSOLIDATION & REVIEW PLAN -->
+      <div id="review-tab-plan" class="review-tab-pane active" role="tabpanel">
+        <div class="dashboard-grid reviews-grid">
+          <!-- Due Reviews Panel -->
+          <div class="card-panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <span class="panel-icon">🔄</span>
+                <h3 class="panel-title">يحتاج إلى مراجعة دورية</h3>
+              </div>
+              <span id="reviews-badge" class="badge-count">0</span>
+            </div>
+            <p class="panel-desc">مفاهيم ومسائل مرّ وقت على آخر استرجاع ناجح لها؛ راجعها لترسيخها في الذاكرة التراكمية.</p>
+            <div id="reviews-list" class="items-list">
+              <div class="empty-state">لا توجد مراجعات مستحقة الآن. أحسنت في استقرار معلوماتك!</div>
+            </div>
+          </div>
+
+          <!-- Weak Concepts Panel -->
+          <div class="card-panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <span class="panel-icon">🎯</span>
+                <h3 class="panel-title">مفاهيم تحتاج إلى تثبيت</h3>
+              </div>
+              <span id="weak-badge" class="badge-count">0</span>
+            </div>
+            <p class="panel-desc">مسائل أظهر التقييم حاجتها لشرح بزاوية أوضح وكشف مواطن اللبس وتثبيت أدلتها.</p>
+            <div id="weak-list" class="items-list">
+              <div class="empty-state">جميع المفاهيم التي اختبرتها حتى الآن مستوعبة ومتقنة بشكل ممتاز.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-TAB 2: INTERACTIVE FLASHCARDS (3D FLIP CARDS) -->
+      <div id="review-tab-flashcards" class="review-tab-pane" role="tabpanel" hidden>
+        <div class="flashcards-wrapper">
+          <div class="flashcards-toolbar">
+            <div class="flashcards-info">
+              <span id="flashcard-counter" class="pill-badge pages-badge">بطاقة ١ من ٠</span>
+              <span id="flashcard-category-badge" class="pill-badge">مسألة فقهية</span>
+            </div>
+            <div class="flashcards-actions-top">
+              <button type="button" id="shuffle-flashcards-btn" class="subtle-btn small-btn" title="خلط البطاقات عشوائياً">
+                <span>🔀 خلط عشوائي</span>
+              </button>
+              <button type="button" id="reset-flashcards-btn" class="subtle-btn small-btn" title="إعادة البدء من البطاقة الأولى">
+                <span>↺ إعادة البدء</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Flashcard Progress Bar -->
+          <div class="progress-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+            <div id="flashcards-progress-fill" class="progress-fill" style="width: 0%;"></div>
+          </div>
+
+          <!-- 3D Flip Card Container -->
+          <div class="flashcard-scene" id="flashcard-scene">
+            <div class="flashcard-card" id="flashcard-card" tabindex="0" role="button" aria-label="انقر لقلب البطاقة وعرض الإجابة">
+              <!-- Front Side -->
+              <div class="flashcard-face flashcard-front">
+                <div class="card-hint-top">
+                  <span class="front-badge">❓ سؤال / مسألة للاسترجاع</span>
+                  <span class="flip-hint-badge">💡 انقر في أي مكان لقلب البطاقة ↩</span>
+                </div>
+                <div class="card-center-content">
+                  <h3 id="flashcard-front-title" class="flashcard-title">جاري تحميل البطاقات...</h3>
+                  <p id="flashcard-front-subtitle" class="flashcard-subtitle"></p>
+                </div>
+                <div class="card-footer-meta">
+                  <span id="flashcard-front-lesson" class="meta-tag">الكتاب الدراسي</span>
+                  <span class="tap-to-flip">انقر للقلب 👁️</span>
+                </div>
+              </div>
+
+              <!-- Back Side -->
+              <div class="flashcard-face flashcard-back">
+                <div class="card-hint-top">
+                  <span class="back-badge">✓ الجواب والتأصيل الفقهي</span>
+                  <span class="flip-hint-badge">↩ انقر للعودة للوجه</span>
+                </div>
+                <div class="card-center-content">
+                  <h4 id="flashcard-back-title" class="flashcard-back-heading">الحكم والضابط:</h4>
+                  <p id="flashcard-back-explanation" class="flashcard-explanation"></p>
+                  
+                  <div id="flashcard-evidence-box" class="card-evidence-callout" hidden>
+                    <span class="evidence-tag">📜 الدليل والاستدلال:</span>
+                    <p id="flashcard-evidence-text"></p>
+                  </div>
+
+                  <div id="flashcard-memory-box" class="card-memory-callout" hidden>
+                    <span class="memory-tag">🧠 الرابط والضابط:</span>
+                    <p id="flashcard-memory-text"></p>
+                  </div>
+                </div>
+                <div class="card-footer-meta">
+                  <span id="flashcard-back-level" class="meta-tag">المستوى الحالي: مألوف</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Flashcard Self-Rating Controls -->
+          <div class="flashcard-rating-bar" id="flashcard-rating-bar">
+            <span class="rating-label">كيف كان استحضارك لهذه المسألة؟</span>
+            <div class="rating-buttons-group">
+              <button type="button" class="rating-btn rate-hard" data-rating="Hard">
+                <span class="rate-emoji">🔴</span>
+                <span class="rate-title">صعب / يحتاج إعادة</span>
+                <span class="rate-sub">تكرار في الجلسة</span>
+              </button>
+              <button type="button" class="rating-btn rate-medium" data-rating="Good">
+                <span class="rate-emoji">🟡</span>
+                <span class="rate-title">متوسط / مستحضر جزئياً</span>
+                <span class="rate-sub">مراجعة بعد ٧ أيام</span>
+              </button>
+              <button type="button" class="rating-btn rate-easy" data-rating="Easy">
+                <span class="rate-emoji">🟢</span>
+                <span class="rate-title">سهل ومتقن تماماً</span>
+                <span class="rate-sub">تثبيت وتأجيل المراجعة</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Flashcard Navigation Prev / Next -->
+          <div class="flashcard-nav-row">
+            <button type="button" id="prev-flashcard-btn" class="secondary-btn small-btn">
+              <span aria-hidden="true">→</span>
+              <span>البطاقة السابقة</span>
+            </button>
+            <button type="button" id="flip-card-btn" class="subtle-btn small-btn">
+              <span>🔄 اقلب البطاقة (Space)</span>
+            </button>
+            <button type="button" id="next-flashcard-btn" class="secondary-btn small-btn">
+              <span>البطاقة التالية</span>
+              <span aria-hidden="true">←</span>
+            </button>
+          </div>
+
+          <!-- Finished Flashcard Deck Notice -->
+          <div id="flashcards-finished-card" class="flashcards-finished-card" hidden>
+            <div class="finished-icon">🎉</div>
+            <h3>أحسنت! أتممت جولة بطاقات الاسترجاع بنجاح</h3>
+            <p>تم تحديث درجات الإتقان والذاكرة التراكمية لجميع المفاهيم التي راجعتها.</p>
+            <div class="finished-actions">
+              <button type="button" id="restart-deck-btn" class="primary-btn">
+                <span>↺ بدء جولة جديدة</span>
+              </button>
+              <button type="button" id="goto-matrix-btn" class="secondary-btn">
+                <span>📊 استعراض مصفوفة المفاهيم</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-TAB 3: QUICK REVIEW QUIZ -->
+      <div id="review-tab-quiz" class="review-tab-pane" role="tabpanel" hidden>
+        <div class="quiz-wrapper">
+          <div class="quiz-hero-bar">
+            <div>
+              <h3 class="quiz-title">اختبار المراجعة والتثبيت السريع</h3>
+              <p class="quiz-subtitle">أسئلة استرجاع وربط فقهي مركزة تستهدف المفاهيم التي تحتاج إلى تأكيد إتقانها.</p>
+            </div>
+            <button type="button" id="refresh-quiz-btn" class="secondary-btn small-btn">
+              <span>🔄 توليد أسئلة جديدة</span>
+            </button>
+          </div>
+
+          <div id="quiz-container" class="quiz-container">
+            <div id="quiz-loading-state" class="status-card">
+              <div class="status-spinner"></div>
+              <h4>جاري تجهيز أسئلة المراجعة المركزة...</h4>
+              <p>يقوم المعلم الذكي باختيار أدق المسائل التي مرّت بك لاختبار استحضارك لها.</p>
+            </div>
+            <div id="quiz-questions-list" class="quiz-questions-list" hidden></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-TAB 4: MASTERY MATRIX & CONCEPT MAP -->
+      <div id="review-tab-matrix" class="review-tab-pane" role="tabpanel" hidden>
+        <div class="matrix-wrapper">
+          <!-- Matrix Search & Filters -->
+          <div class="matrix-toolbar">
+            <div class="matrix-search-box">
+              <input type="text" id="matrix-search-input" class="vocab-search-input"
+                placeholder="🔍 ابحث في مسائل ومفاهيم ومصطلحات الكتاب..." />
+            </div>
+            <div class="matrix-filter-pills" role="tablist" aria-label="فلترة المفاهيم حسب مستوى الإتقان">
+              <button type="button" class="filter-pill active" data-matrix-filter="all">الجميع (<span id="count-all">0</span>)</button>
+              <button type="button" class="filter-pill" data-matrix-filter="weak">🎯 قيد التثبيت (<span id="count-weak">0</span>)</button>
+              <button type="button" class="filter-pill" data-matrix-filter="due">🔄 مستحق للمراجعة (<span id="count-due">0</span>)</button>
+              <button type="button" class="filter-pill" data-matrix-filter="mastered">⭐ متقنة (<span id="count-mastered">0</span>)</button>
+              <button type="button" class="filter-pill" data-matrix-filter="understood">💡 مستوعبة (<span id="count-understood">0</span>)</button>
+              <button type="button" class="filter-pill" data-matrix-filter="familiar">🌱 مألوفة (<span id="count-familiar">0</span>)</button>
+            </div>
+          </div>
+
+          <!-- Matrix Grid -->
+          <div id="matrix-grid" class="matrix-grid">
+            <div class="empty-state">جاري تحميل مصفوفة المفاهيم...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REINFORCEMENT MODAL (AI-GUIDED CONSOLIDATION DIALOG) -->
+      <div id="reinforcement-modal" class="modal-backdrop" hidden>
+        <div class="reinforcement-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modal-concept-title">
+          <!-- Modal Top Bar -->
+          <div class="modal-header">
+            <div class="modal-header-title-group">
+              <span class="modal-badge-icon">🧠</span>
+              <div>
+                <span class="modal-eyebrow">جلسة تثبيت ذكية بإشراف المعلم</span>
+                <h3 id="modal-concept-title" class="modal-concept-title">اسم المسألة الفقهية</h3>
+              </div>
+            </div>
+            <button type="button" id="close-reinforce-modal-btn" class="modal-close-btn" aria-label="إغلاق النافذة">&times;</button>
+          </div>
+
+          <!-- Modal Body Content -->
+          <div class="modal-body" id="reinforce-modal-body">
+            <!-- Loading Indicator -->
+            <div id="reinforce-modal-loading" class="status-card modal-loading">
+              <div class="status-spinner"></div>
+              <h4>جاري بناء جلسة التثبيت والشرح الميسر...</h4>
+              <p>يقوم المعلم الذكي بتحليل موطن اللبس واستخراج الدليل والضابط الذهني لترسيخ المسألة.</p>
+            </div>
+
+            <!-- Structured Reinforcement Content -->
+            <div id="reinforce-content-view" class="reinforce-content-view" hidden>
+              <!-- 1. Simplified Explanation Box -->
+              <div class="reinforce-card explanation-box">
+                <div class="reinforce-card-header">
+                  <span class="card-icon">💡</span>
+                  <h4>الشرح الميسر والزاوية الجديدة للمسألة:</h4>
+                </div>
+                <p id="modal-explanation-text" class="reinforce-card-text"></p>
+              </div>
+
+              <!-- 2. Evidence & Inference Box -->
+              <div id="modal-evidence-card" class="reinforce-card evidence-box" hidden>
+                <div class="reinforce-card-header">
+                  <span class="card-icon">📜</span>
+                  <h4 id="modal-evidence-role-title">الدليل ووجه الاستدلال:</h4>
+                </div>
+                <p id="modal-evidence-text" class="reinforce-card-text evidence-quote"></p>
+              </div>
+
+              <!-- 3. Misconception Clarifier -->
+              <div class="reinforce-card misconception-box">
+                <div class="reinforce-card-header">
+                  <span class="card-icon">⚠️</span>
+                  <h4>موطن اللبس الشائع وكيف تضبطه:</h4>
+                </div>
+                <p id="modal-misconception-text" class="reinforce-card-text"></p>
+              </div>
+
+              <!-- 4. Mnemonic Memory Anchor -->
+              <div class="reinforce-card mnemonic-box">
+                <div class="reinforce-card-header">
+                  <span class="card-icon">🧠</span>
+                  <h4>الضابط والرابط الذهني للتثبيت:</h4>
+                </div>
+                <p id="modal-mnemonic-text" class="reinforce-card-text"></p>
+              </div>
+
+              <!-- 5. Verification Practice Question -->
+              <div class="reinforce-quiz-section">
+                <div class="quiz-section-header">
+                  <span class="section-pill">✍️ سؤال التحقق الفوري من التثبيت</span>
+                  <span id="modal-question-type-badge" class="pill-badge muted-badge">استيعاب واستدلال</span>
+                </div>
+                <h4 id="modal-question-prompt" class="modal-question-prompt">سؤال التحقق سيظهر هنا...</h4>
+                <p id="modal-question-guidance" class="modal-question-hint">أجب بأسلوبك مع التركيز على وجه الاستدلال.</p>
+
+                <form id="reinforce-answer-form" class="modal-answer-form">
+                  <textarea id="modal-answer-input" class="answer-textarea" rows="4"
+                    placeholder="اكتب إجابتك هنا بأسلوبك لتأكيد تثبيت المفهوم..." required></textarea>
+                  <div class="modal-form-actions">
+                    <button type="submit" id="modal-submit-answer-btn" class="primary-btn glow-btn">
+                      <span class="btn-text">إرسال الإجابة لتأكيد التثبيت</span>
+                      <span class="spinner" hidden aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </form>
+
+                <!-- Feedback Area after submitting verification answer -->
+                <div id="modal-evaluation-feedback" class="modal-feedback-box" hidden>
+                  <div class="feedback-status-row">
+                    <span id="modal-feedback-status-pill" class="status-pill correct">تم التثبيت بنجاح ✓</span>
+                    <span id="modal-feedback-score-pill" class="level-pill">الدرجة: ١٠٠٪</span>
+                  </div>
+                  <p id="modal-feedback-comment" class="feedback-text"></p>
+                  
+                  <div id="modal-understood-points-group" class="concepts-feedback-group" hidden>
+                    <span class="group-title">✓ نقاط أتقنتها في إجابتك:</span>
+                    <div id="modal-understood-points-list" class="concepts-tag-list"></div>
+                  </div>
+
+                  <div id="modal-advice-points-group" class="concepts-feedback-group warn-group" hidden>
+                    <span class="group-title">💡 إرشادات تكميلية:</span>
+                    <div id="modal-advice-points-list" class="concepts-tag-list"></div>
+                  </div>
+
+                  <div class="modal-finished-row">
+                    <button type="button" id="modal-done-btn" class="primary-btn">
+                      <span>إتمام وحفظ التقدم ✓</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: LESSON READER (Progressive Disclosure) -->
+    <section id="view-reader" class="workspace-view" aria-labelledby="reader-lesson-title" hidden>
+      <!-- Reader Header Bar -->
+      <div class="reader-toolbar">
+        <button id="reader-back-btn" class="secondary-btn back-btn">
+          <span aria-hidden="true">→</span>
+          <span>العودة إلى مساحة التعلّم</span>
+        </button>
+        <div class="reader-toolbar-center">
+          <button id="reader-open-chat-btn" class="secondary-btn glow-subtle-btn" type="button">
+            <span aria-hidden="true">💬</span>
+            <span>مباحثة واستفسار مع المعلم الذكي</span>
+          </button>
+        </div>
+        <div class="reader-progress-info">
+          <span id="reader-source-pages" class="badge-tag">الصفحات ٠-٠</span>
+          <span id="reader-status-badge" class="badge-tag status-tag">قيد القراءة</span>
+        </div>
+      </div>
+
+      <!-- Lesson Main Paper -->
+      <article class="lesson-paper">
+        <header class="lesson-header">
+          <span class="lesson-eyebrow" id="reader-book-eyebrow">كتاب دراسي — درس تعليمي</span>
+          <h2 id="reader-lesson-title" class="lesson-title">عنوان الدرس</h2>
+          <div class="lesson-overview-card">
+            <h4 class="overview-heading">ماذا ستفهم وتستوعب في هذا الدرس؟</h4>
+            <p id="reader-lesson-overview" class="overview-text"></p>
+          </div>
+        </header>
+
+        <!-- Original Arabic Pages Text Section -->
+        <section id="reader-original-pages-section" class="reader-card original-pages-card" hidden>
+          <div class="original-pages-header">
+            <div class="original-pages-title-row">
+              <span class="panel-icon">📜</span>
+              <h3 class="card-title">النص العربي لصفحات الكتاب الأصلية</h3>
+              <span id="reader-pages-count-badge" class="pill-badge muted-badge">صفحة ١</span>
+            </div>
+          </div>
+          <p class="original-pages-desc">هذا هو المتن والنص العربي الأصلي المستخرج من صفحات الكتاب؛ يمكنك قراءته أو الاستماع إليه مباشرة:</p>
+          <div id="reader-pages-list" class="original-pages-list">
+            <!-- Dynamically populated original page text cards -->
+          </div>
+        </section>
+
+        <!-- Progressive Content Sections -->
+        <div id="reader-hadiths-container" class="hadiths-container">
+          <!-- Dynamically populated hadith breakdowns -->
+        </div>
+
+        <!-- Connections & Key Takeaways -->
+        <div id="reader-connections-card" class="reader-card highlight-card" hidden>
+          <h4 class="card-title">الروابط والفوائد العامة</h4>
+          <ul id="reader-connections-list" class="connections-list"></ul>
+        </div>
+
+        <!-- People Mentioned in Lesson (Active Educational Memory) -->
+        <div id="reader-people-section" class="reader-card people-card" hidden>
+          <h4 class="card-title">الأعلام والرواة في هذا المقطع</h4>
+          <p class="people-intro">المعلم الذكي يميز بين الأعلام الجدد ومن مرّوا بك سابقًا لتسهيل الاستيعاب:</p>
+          <div id="reader-people-list" class="people-grid"></div>
+        </div>
+
+        <!-- Self-Review Questions Before Assessment -->
+        <div id="reader-review-questions-card" class="reader-card review-questions-card" hidden>
+          <h4 class="card-title">أسئلة للتفكير الذاتي قبل الانتقال للتقييم</h4>
+          <ul id="reader-review-questions-list" class="review-questions-list"></ul>
+        </div>
+
+        <!-- Next Action Transition -->
+        <div class="reader-footer-action">
+          <div class="action-prompt">
+            <h4>هل انتهيت من قراءة وفهم الدرس؟</h4>
+            <p>انتقل الآن لأسئلة التحقق من الفهم؛ حيث سيقوم المعلم الذكي بتقييم استيعابك للمسألة والأدلة.</p>
+          </div>
+          <button id="reader-goto-assessment-btn" class="primary-btn large-btn">
+            <span>الانتقال لأسئلة التحقق من الفهم</span>
+            <span aria-hidden="true">←</span>
+          </button>
+        </div>
+      </article>
+    </section>
+
+    <!-- VIEW 3: ASSESSMENT EXPERIENCE (1 Question at a Time) -->
+    <section id="view-assessment" class="workspace-view" aria-labelledby="assessment-title" hidden>
+      <div class="assessment-container">
+        <!-- Assessment Top Bar -->
+        <div class="assessment-topbar">
+          <button id="assessment-back-btn" class="secondary-btn back-btn">
+            <span aria-hidden="true">→</span>
+            <span>العودة للدرس</span>
+          </button>
+          <div class="assessment-header-center">
+            <h2 id="assessment-title" class="assessment-title">اختبار فهم المسألة</h2>
+            <span id="assessment-lesson-name" class="assessment-lesson-name"></span>
+          </div>
+          <div class="assessment-stepper">
+            <span id="assessment-step-count" class="step-count">سؤال ١ من ٣</span>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+          <div id="assessment-progress-fill" class="progress-fill" style="width: 0%;"></div>
+        </div>
+
+        <!-- Question Card -->
+        <div class="question-panel">
+          <div class="question-meta-row">
+            <span id="question-type-badge" class="pill-badge">شرح المفاهيم</span>
+            <span id="question-diff-badge" class="pill-badge muted-badge">مستوى متوسط</span>
+            <span id="question-pages-badge" class="pill-badge pages-badge">الصفحة —</span>
+          </div>
+
+          <h3 id="question-text" class="question-prompt">نص السؤال سيظهر هنا...</h3>
+          <p id="question-guidance-hint" class="question-hint">بيّن فهمك للمسألة مع ذكر وجه الاستدلال والدليل إن وجد.</p>
+
+          <!-- Answer Form -->
+          <form id="assessment-form" class="answer-form">
+            <label for="student-answer-input" class="sr-only">إجابتك:</label>
+            <textarea id="student-answer-input" class="answer-textarea" rows="5" placeholder="اكتب إجابتك هنا بأسلوبك الخاص..." required></textarea>
+            
+            <div class="form-bottom-row">
+              <span id="char-counter" class="char-counter">٠ حرف</span>
+              <button type="submit" id="submit-answer-btn" class="primary-btn">
+                <span class="btn-text">إرسال الإجابة للتقييم</span>
+                <span class="spinner" hidden aria-hidden="true"></span>
+              </button>
+            </div>
+          </form>
+
+          <!-- AI Evaluation Feedback Card (Rendered after submission) -->
+          <div id="assessment-feedback-card" class="feedback-card" hidden>
+            <div class="feedback-status-row">
+              <div class="feedback-badge-group">
+                <span id="feedback-status-pill" class="status-pill correct">إجابة ممتازة ومستوعبة</span>
+                <span id="feedback-level-pill" class="level-pill">المستوى: مستوعب</span>
+              </div>
+            </div>
+
+            <div class="feedback-content">
+              <h4 class="feedback-heading">ملاحظات المعلم:</h4>
+              <p id="feedback-text" class="feedback-text"></p>
+            </div>
+
+            <!-- Understood concepts badges -->
+            <div id="understood-concepts-group" class="concepts-feedback-group" hidden>
+              <span class="group-title">✓ مفاهيم أظهرت استيعابًا دقيقًا لها:</span>
+              <div id="understood-concepts-list" class="concepts-tag-list"></div>
+            </div>
+
+            <!-- Missing / Tips -->
+            <div id="missing-concepts-group" class="concepts-feedback-group warn-group" hidden>
+              <span class="group-title">نصائح وإرشادات لتثبيت الفهم:</span>
+              <div id="missing-concepts-list" class="concepts-tag-list"></div>
+            </div>
+
+            <!-- Navigation Button to Next Question or Summary -->
+            <div class="feedback-actions">
+              <button id="next-question-btn" class="primary-btn">
+                <span>السؤال التالي</span>
+                <span aria-hidden="true">←</span>
+              </button>
+              <button id="finish-assessment-btn" class="primary-btn" hidden>
+                <span>إتمام التقييم والعودة للمسار</span>
+                <span aria-hidden="true">✓</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: SOURCE PROGRESSION & SOURCE INGESTION -->
+    <section id="view-upload" class="workspace-view" aria-labelledby="upload-heading" hidden>
+      <div class="upload-panel">
+        <div class="upload-header">
+          <span class="panel-icon large-icon">📥</span>
+          <h2 id="upload-heading" class="upload-title">إضافة محتوى دراسي جديد</h2>
+          <p class="upload-subtitle">أدخل المقطع الدراسي عبر رفع ملف PDF، أو لصق النص مباشرة من الحافظة، أو لصق لقطات شاشة وصور من صفحات الكتاب.</p>
+        </div>
+
+        <div id="upload-end-notice" class="callout-box" hidden>
+          <strong>وصلنا إلى نهاية الصفحات المحفوظة حاليًا</strong>
+          <p>أحسنت في إتمام المسار السابق! أضف المقطع التالي من صفحات الكتاب لمتابعة المسار التعليمي.</p>
+        </div>
+
+        <!-- Source Input Mode Selector Tabs -->
+        <div class="source-mode-tabs" role="tablist" aria-label="طريقة إدخال المصدر">
+          <button type="button" class="source-tab-btn active" data-source-mode="pdf" role="tab" aria-selected="true">
+            <span class="tab-icon">📄</span>
+            <span>ملف PDF</span>
+          </button>
+          <button type="button" class="source-tab-btn" data-source-mode="clipboard-text" role="tab" aria-selected="false">
+            <span class="tab-icon">📋</span>
+            <span>لصق نص من الحافظة</span>
+          </button>
+          <button type="button" class="source-tab-btn" data-source-mode="clipboard-images" role="tab" aria-selected="false">
+            <span class="tab-icon">🖼️</span>
+            <span>لصق صور / لقطات شاشة</span>
+          </button>
+        </div>
+
+        <form id="upload-lesson-form" class="upload-form">
+          <div class="form-group">
+            <label for="upload-target-book-select">الكتاب الدراسي المستهدف:</label>
+            <select id="upload-target-book-select" class="number-input select-styled">
+              <!-- Dynamically populated -->
+            </select>
+            <span class="settings-hint">💡 سيُحفظ الدرس الجديد مباشرة في هذا الكتاب ويظل هو المعتمد تلقائياً.</span>
+          </div>
+          <div class="form-group" id="new-book-title-group" hidden>
+            <label for="book-title-input">اسم الكتاب الجديد:</label>
+            <input type="text" id="book-title-input" class="number-input" maxlength="200"
+              placeholder="اكتب اسم الكتاب الجديد..." />
+          </div>
+
+          <!-- Mode 1: PDF Upload -->
+          <div id="source-panel-pdf" class="source-panel active">
+            <div class="form-group">
+              <label for="pdf-file-input">ملف الكتاب (PDF):</label>
+              <div class="file-drop-zone" id="pdf-drop-zone">
+                <input type="file" id="pdf-file-input" accept="application/pdf" class="file-input" />
+                <div class="drop-zone-text">
+                  <span class="drop-icon" id="pdf-drop-icon">📁</span>
+                  <span id="file-chosen-text">انقر لاختيار ملف PDF أو اسحبه إلى هنا</span>
+                  <span id="file-chosen-subtext" class="drop-zone-subtext" hidden></span>
+                </div>
+              </div>
+              <div id="pdf-file-actions" class="pdf-file-actions-row" hidden>
+                <div class="pdf-status-pill">
+                  <span class="badge-icon">✅</span>
+                  <span id="pdf-status-text">الكتاب محفوظ ومثبّت في المنصة تلقائياً</span>
+                </div>
+                <div class="pdf-action-btns">
+                  <button type="button" id="change-pdf-btn" class="secondary-btn small-btn" title="اختيار ملف بديل">
+                    <span>🔄 تغيير الملف</span>
+                  </button>
+                  <button type="button" id="remove-pdf-btn" class="subtle-btn small-btn danger-text" title="إزالة الملف المعتمد">
+                    <span>🗑️ إزالة</span>
+                  </button>
+                </div>
+              </div>
+              <span id="pdf-retained-hint" class="settings-hint" hidden>
+                💡 ملف الكتاب محفوظ ومثبّت في المنصة تلقائياً، يمكنك إنشاء الدروس المتتابعة دون الحاجة لإعادة رفعه.
+              </span>
+            </div>
+          </div>
+
+          <!-- Mode 2: Clipboard Text Paste -->
+          <div id="source-panel-clipboard-text" class="source-panel" hidden>
+            <div class="form-group">
+              <div class="field-header-row">
+                <label for="clipboard-source-textarea">نص المقطع الدراسي:</label>
+                <div class="field-actions">
+                  <button type="button" id="paste-text-btn" class="secondary-btn small-btn">
+                    <span>📋 لصق من الحافظة</span>
+                  </button>
+                  <button type="button" id="clear-text-btn" class="subtle-btn small-btn" title="تفريغ الحقل">
+                    <span>مسح</span>
+                  </button>
+                </div>
+              </div>
+              <textarea id="clipboard-source-textarea" class="settings-textarea text-source-area" rows="8"
+                placeholder="الصق هنا النص المنسوخ من الكتاب أو الشاملة أو موقع الويب (أو اضغط زر 'لصق من الحافظة' أعلاه)..."></textarea>
+              <div class="field-meta-row">
+                <span id="clipboard-text-counter" class="char-counter">٠ كلمات</span>
+                <span class="settings-hint">💡 يمكنك نسخ النص من أي برنامج أو موقع ولصقه هنا مباشرة.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mode 3: Clipboard Images Paste -->
+          <div id="source-panel-clipboard-images" class="source-panel" hidden>
+            <div class="form-group">
+              <div class="field-header-row">
+                <label>لقطات الشاشة والصور المنسوخة:</label>
+                <button type="button" id="paste-image-btn" class="secondary-btn small-btn">
+                  <span>📋 لصق صورة من الحافظة</span>
+                </button>
+              </div>
+              <div id="image-paste-dropzone" class="image-paste-zone" tabindex="0">
+                <span class="drop-icon">📸</span>
+                <span class="paste-zone-title">انقر هنا واضغط Ctrl + V للصق لقطة الشاشة من الحافظة</span>
+                <span class="paste-zone-hint">يمكنك التقاط لقطة شاشة (Snipping Tool / Win + Shift + S) ولصقها هنا فوراً</span>
+              </div>
+              <div id="pasted-images-gallery" class="pasted-images-grid" hidden></div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group half">
+              <label for="start-page-input">من صفحة / مقطع:</label>
+              <input type="number" id="start-page-input" class="number-input" min="1" placeholder="مثال: 1" value="1" required />
+            </div>
+            <div class="form-group half">
+              <label for="end-page-input">إلى صفحة / مقطع:</label>
+              <input type="number" id="end-page-input" class="number-input" min="1" placeholder="مثال: 2" value="1" required />
+            </div>
+          </div>
+
+          <div class="upload-notes">
+            <p>💡 يُنصح باختيار نطاق يتراوح بين <strong>صفحة واحدة إلى صفحتين أو مقطعين (صفحتين فقط كحد أقصى)</strong> لضمان استيعاب عميق وتغطية المسائل بدقة.</p>
+          </div>
+
+          <!-- Continuous Lesson Generation Ready Banner -->
+          <div id="upload-continuous-banner" class="continuous-create-banner" hidden>
+            <div class="banner-status-icon">✅</div>
+            <div class="banner-content">
+              <strong id="upload-continuous-title">تم إنشاء الدرس بنجاح!</strong>
+              <p id="upload-continuous-desc">تم حفظ الدرس والاحتفاظ بملف الكتاب معتمداً، وتحديد الصفحتين التاليتين تلقائياً. اضغط على "معالجة المصدر وإنشاء الدرس" لإنشاء الدرس التالي فوراً.</p>
+              <div class="banner-actions">
+                <button type="button" id="upload-view-lesson-btn" class="secondary-btn small-btn">
+                  <span>📖 استعراض الدرس المُنشأ</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="generate-lesson-btn" class="primary-btn large-btn">
+              <span class="btn-text">معالجة المصدر وإنشاء الدرس</span>
+              <span class="spinner" hidden aria-hidden="true"></span>
+            </button>
+          </div>
+        </form>
+
+        <div id="generation-status-card" class="status-card" hidden>
+          <div class="status-spinner"></div>
+          <h4 id="generation-status-title">جاري استخراج النصوص ومعالجة الدرس...</h4>
+          <p id="generation-status-detail">يقوم النظام بتحليل الأدلة والاستدلالات الفقهية وبناء الذاكرة التعليمية. قد تستغرق المعالجة لحظات قليلة.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 5: SETTINGS -->
+    <section id="view-settings" class="workspace-view" aria-labelledby="settings-heading" hidden>
+      <div class="settings-panel">
+        <div class="settings-header">
+          <span class="panel-icon large-icon">⚙️</span>
+          <h2 id="settings-heading" class="settings-title">إعدادات وتوجيهات الذكاء الاصطناعي</h2>
+          <p class="settings-subtitle">تحكم في أسلوب وطريقة رد المعلم الذكي، وخصص البرومبت الخاص بك، وأضف مفتاح Conduit الاحتياطي.</p>
+        </div>
+
+        <div id="settings-save-notice" class="settings-notice" hidden></div>
+
+        <form id="settings-form" class="settings-form">
+
+          <!-- 0. Default Book Setting -->
+          <div class="settings-section">
+            <div class="section-header-badge">
+              <span class="badge-icon">📚</span>
+              <h3 class="settings-section-title">الكتاب الافتراضي للمنصة</h3>
+            </div>
+            <p class="settings-section-desc">
+              اختر الكتاب الافتراضي المعتمد الذي ترغب في تثبيته دائماً عند فتح المنصة وتوليد الدروس.
+            </p>
+            <div class="settings-field full-width">
+              <label for="settings-default-book-select">الكتاب الافتراضي المعتمد:</label>
+              <select id="settings-default-book-select" class="settings-input select-styled">
+                <option value="">جاري تحميل الكتب...</option>
+              </select>
+              <span class="settings-hint">💡 سيظل هذا الكتاب هو المختار دائماً ككتاب افتراضي ولن يتغير أو يُلغى عند توليد الدروس.</span>
+            </div>
+          </div>
+
+          <!-- 1. MAIN FEATURE: Custom AI Response Prompt -->
+          <div class="settings-section highlight-section">
+            <div class="section-header-badge">
+              <span class="badge-icon">💬</span>
+              <h3 class="settings-section-title">البرومبت المخصص لرد الذكاء الاصطناعي</h3>
+            </div>
+            <p class="settings-section-desc">
+              اكتب هنا البرومبت أو الأسلوب والتوجيهات التي تريد أن يلتزم بها المعلم الذكي عند الشرح، الإجابة، وتقديم التقييم والتغذية الراجعة.
+            </p>
+
+            <!-- Quick Preset Chips -->
+            <div class="prompt-presets-container">
+              <span class="presets-label">⚡ نماذج جاهزة سريعة (انقر للاختيار):</span>
+              <div class="preset-chips-list">
+                <button type="button" class="preset-chip" data-preset="قم بتحليل النصوص وشرحها تحليلاً مفرداتياً ولفظياً كلمة بكلمة وجملة بجملة، واشرح كل مسألة وكل جزئية بالتفصيل التام والمستوعب دون أي تلخيص أو اختصار أو تجاوز لأي لفظ.">🔍 تحليل كلمة بكلمة (مستوعب دون تلخيص)</button>
+                <button type="button" class="preset-chip" data-preset="اشرح لي دائماً بأسلوب ميسر وشيق، وخاطبني بلطف كطالب مبتدئ، واضرب أمثلة واقعية وملموسة تقرب المعنى.">🌱 مبسط للمبتدئين</button>
+                <button type="button" class="preset-chip" data-preset="اشرح بأسلوب علمي أكاديمي رصين، وركز على الفروق اللغوية الدقيقة، ومسالك الاستدلال وعلل الأحكام.">🎓 أكاديمي متعمق</button>
+                <button type="button" class="preset-chip" data-preset="ركز على الفوائد الإيمانية والتربوية والتطبيق العملي للحديث في واقعنا المعاصر بأسلوب مؤثر وواضح.">🌟 تربوي وعملي</button>
+                <button type="button" class="preset-chip" data-preset="اجعل الشرح والتغذية الراجعة مختصرة ومركزة في نقاط مباشرة ومحددة دون استطراد.">⚡ سريع ومباشر</button>
+              </div>
+            </div>
+
+            <div class="settings-field full-width">
+              <label for="settings-custom-prompt">نص البرومبت المخصص للـ AI:</label>
+              <textarea id="settings-custom-prompt" class="settings-textarea main-custom-prompt" rows="5"
+                placeholder="مثال: أريدك أن ترد عليّ بأسلوب مبسط جداً، وتركز على الفوائد التربوية، وتشرح المصطلحات الصعبة فوراً، وتخاطبني بروح المعلم المشجع..."></textarea>
+              <span class="settings-hint">💡 سيتم تطبيق هذا البرومبت وتوجيهاتك تلقائياً على كل الشروح والدروس والتقييمات.</span>
+            </div>
+          </div>
+
+          <!-- 2. Conduit Fallback Section -->
+          <div class="settings-section">
+            <h3 class="settings-section-title">🔑 مزوّد Conduit الاحتياطي (Fallback)</h3>
+            <p class="settings-section-desc">عند حدوث أي انقطاع أو ضغط على مزوّد Gemini الأساسي، ينتقل النظام تلقائياً وبسلاسة إلى Conduit دون توقف.</p>
+            <div class="settings-field">
+              <label for="settings-fallback-key">مفتاح Conduit API:</label>
+              <input type="password" id="settings-fallback-key" class="settings-input"
+                placeholder="sk-cdt-ey..." autocomplete="off" />
+              <button type="button" id="toggle-key-visibility" class="icon-btn" title="إظهار/إخفاء المفتاح" aria-label="إظهار المفتاح">👁</button>
+            </div>
+            <div class="settings-field">
+              <label for="settings-fallback-model">نموذج Conduit:</label>
+              <input type="text" id="settings-fallback-model" class="settings-input"
+                placeholder="مثال: claude-sonnet-4-5" />
+              <span class="settings-hint">يدعم Conduit نماذج Claude وGPT وDeepSeek وغيرها (الافتراضي: claude-sonnet-4-5).</span>
+            </div>
+          </div>
+
+          <!-- 3. Advanced Prompts (Collapsible) -->
+          <details class="settings-section advanced-section">
+            <summary class="advanced-summary">
+              <span class="summary-title">⚙️ الأوامر المتقدمة للنظام (System Prompts)</span>
+              <span class="summary-hint">اضغط لعرض أو تعديل الأوامر الأساسية الكاملة للتقييم والدروس</span>
+            </summary>
+
+            <div class="advanced-content">
+              <!-- Assessment Prompt Section -->
+              <div class="settings-field full-width">
+                <label for="settings-assessment-prompt">أمر التقييم الكامل (Assessment System Prompt):</label>
+                <textarea id="settings-assessment-prompt" class="settings-textarea" rows="12"
+                  placeholder="جاري التحميل..."></textarea>
+              </div>
+
+              <!-- Lesson Prompt Section -->
+              <div class="settings-field full-width">
+                <label for="settings-lesson-prompt">أمر توليد الدروس الكامل (Lesson System Prompt):</label>
+                <textarea id="settings-lesson-prompt" class="settings-textarea" rows="14"
+                  placeholder="جاري التحميل..."></textarea>
+              </div>
+            </div>
+          </details>
+
+          <div class="settings-actions">
+            <button type="button" id="settings-reset-btn" class="secondary-btn">
+              <span>إعادة تعيين للافتراضي</span>
+            </button>
+            <button type="submit" id="settings-save-btn" class="primary-btn">
+              <span class="btn-text">حفظ الإعدادات</span>
+              <span class="spinner" hidden aria-hidden="true"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- VIEW 6: QURAN MEMORIZATION & TADABBUR ASSISTANT -->
+    <section id="view-quran" class="workspace-view" aria-labelledby="quran-heading" hidden>
+      <div class="quran-workspace-panel">
+        <!-- Quran Header -->
+        <div class="quran-header">
+          <span class="panel-icon large-icon">🕋</span>
+          <h2 id="quran-heading" class="quran-title">مساعد حفظ وتدبر القرآن بالروابط الذهنية والموضوعية</h2>
+          <p class="quran-subtitle">استوعب مقاصد السور، واكتشف الروابط والمناسبات الدقيقة بين الآيات، وافهم سر فواصل وخواتيم الآيات، مع خريطة ذهنية بصرية وجدول لضبط المتشابهات.</p>
+        </div>
+
+        <!-- Quran Selection & Control Card -->
+        <div class="quran-selector-card">
+          <form id="quran-analysis-form" class="quran-form">
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label for="quran-surah-select">اختر السورة الكريمة:</label>
+                <select id="quran-surah-select" class="number-input select-styled">
+                  <option value="">جاري تحميل السور...</option>
+                </select>
+              </div>
+              <div class="form-group flex-1">
+                <label for="quran-start-ayah">من آية:</label>
+                <input type="number" id="quran-start-ayah" class="number-input" min="1" value="1" placeholder="1" />
+              </div>
+              <div class="form-group flex-1">
+                <label for="quran-end-ayah">إلى آية:</label>
+                <input type="number" id="quran-end-ayah" class="number-input" min="1" placeholder="كامل السورة" />
+              </div>
+            </div>
+
+            <div class="quran-options-row">
+              <label class="checkbox-label">
+                <input type="checkbox" id="quran-full-surah-check" checked />
+                <span>تحليل كامل السورة</span>
+              </label>
+              <button type="button" id="toggle-quran-custom-text-btn" class="subtle-btn small-btn">
+                <span>✍️ أو إدخال نص آيات مخصص</span>
+              </button>
+            </div>
+
+            <!-- Custom Quran Text Input (Collapsible) -->
+            <div id="quran-custom-text-wrapper" class="quran-custom-text-box" hidden>
+              <label for="quran-custom-text">الصق أو اكتب نص الآيات المطلوب تحليلها:</label>
+              <textarea id="quran-custom-text" class="settings-textarea" rows="4"
+                placeholder="اكتب أو الصق نص الآيات هنا مباشرة..."></textarea>
+            </div>
+
+            <div class="form-actions align-center">
+              <button type="submit" id="quran-analyze-btn" class="primary-btn large-btn glow-btn">
+                <span class="btn-text">🧠 بدء التحليل وبناء الخريطة والروابط الذهنية</span>
+                <span class="spinner" hidden aria-hidden="true"></span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Loading State Card -->
+        <div id="quran-loading-card" class="status-card quran-loading" hidden>
+          <div class="status-spinner"></div>
+          <h4 id="quran-loading-title">جاري تحليل السورة وبناء الخريطة الذهنية وفحص الروابط...</h4>
+          <p id="quran-loading-detail">يقوم المعلم الذكي باستخراج مقاصد السورة، وعلم المناسبات، وتفسير الفواصل، وحصر المتشابهات وضوابطها بدقة علمية.</p>
+        </div>
+
+        <!-- Quran Results Container -->
+        <div id="quran-results-container" class="quran-results" hidden>
+          <!-- Surah Hero Overview Card -->
+          <div class="surah-hero-card">
+            <div class="surah-badge-row">
+              <span id="surah-number-badge" class="surah-pill-badge">سورة رقم ٦٧</span>
+              <span id="surah-type-badge" class="surah-pill-badge type-badge">مكية</span>
+              <span id="surah-ayat-badge" class="surah-pill-badge">٣٠ آية</span>
+              <span id="surah-range-badge" class="surah-pill-badge range-badge">النطاق: كامل السورة</span>
+            </div>
+            <h3 id="surah-display-title" class="surah-main-name">سورة الملك</h3>
+            <div class="surah-objective-box">
+              <span class="objective-label">🎯 مقصد السورة العام والوحدة الموضوعية:</span>
+              <p id="surah-objective-text" class="objective-content"></p>
+            </div>
+
+            <!-- Surah Names & Virtues Box -->
+            <div id="surah-virtues-box" class="surah-virtues-card" hidden>
+              <div class="virtues-item">
+                <span class="virtues-label">📜 من أسماء السورة:</span>
+                <span id="surah-names-text" class="virtues-content"></span>
+              </div>
+              <div class="virtues-item">
+                <span class="virtues-label">✨ الفضائل الثابتة:</span>
+                <span id="surah-virtues-text" class="virtues-content"></span>
+              </div>
+              <div id="surah-plan-row" class="virtues-item" hidden>
+                <span class="virtues-label">📅 مقترح خطة الحفظ:</span>
+                <span id="surah-plan-text" class="virtues-content"></span>
+              </div>
+            </div>
+
+            <!-- Memorization Progress Bar -->
+            <div id="surah-progress-container" class="quran-progress-card">
+              <div class="quran-progress-header">
+                <span class="quran-progress-title">📊 تقدم الحفظ والإتقان للسورة:</span>
+                <span id="surah-progress-stats" class="quran-progress-percent">تم حفظ ٠ من ٣٠ آية (٠%)</span>
+              </div>
+              <div class="quran-progress-bar-bg">
+                <div id="surah-progress-bar-fill" class="quran-progress-bar-fill" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <!-- Action Buttons Row -->
+            <div class="surah-actions-row">
+              <button type="button" id="quran-listen-all-btn" class="primary-btn small-btn action-audio-btn" title="استماع لتلاوة السورة كاملة">
+                <span class="btn-icon">🎙️</span>
+                <span class="btn-text">استماع لتلاوة السورة كاملة</span>
+              </button>
+              <button type="button" id="quran-ask-tutor-btn" class="secondary-btn small-btn action-tutor-btn">
+                <span class="btn-icon">💬</span>
+                <span class="btn-text">مباحثة المعلم الذكي</span>
+              </button>
+              <button type="button" id="quran-copy-summary-btn" class="subtle-btn small-btn">
+                <span class="btn-icon">📋</span>
+                <span class="btn-text">نسخ ملخص الحفظ</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Quran Sub-Navigation Tabs -->
+          <div class="quran-tabs-nav" role="tablist" aria-label="أقسام دراسة السورة">
+            <button type="button" class="quran-tab-btn active" data-quran-tab="connections" role="tab" aria-selected="true">
+              <span class="tab-icon">🔍</span>
+              <span>التحليل التفصيلي آية بآية</span>
+            </button>
+            <button type="button" class="quran-tab-btn" data-quran-tab="thematics" role="tab" aria-selected="false">
+              <span class="tab-icon">📑</span>
+              <span>المحاور والتقسيم الموضوعي</span>
+            </button>
+            <button type="button" class="quran-tab-btn" data-quran-tab="mutashabihat" role="tab" aria-selected="false">
+              <span class="tab-icon">⚖️</span>
+              <span>جدول المتشابهات وضوابط الحفظ</span>
+            </button>
+            <button type="button" class="quran-tab-btn" data-quran-tab="tadabbur" role="tab" aria-selected="false">
+              <span class="tab-icon">📖</span>
+              <span>معاني الألفاظ والتدبر</span>
+            </button>
+          </div>
+
+          <!-- TAB 1: AYAH BY AYAH DETAILED ANALYSIS -->
+          <div id="quran-tab-connections" class="quran-tab-pane active" role="tabpanel">
+            <div class="tab-pane-header">
+              <div class="pane-title-group">
+                <h4 class="pane-title">🔍 التحليل والمستكشف التفصيلي للآيات (آية بآية)</h4>
+                <p class="pane-desc">مدارسة مستوعبة لكل آية: المعنى الإجمالي، غريب الألفاظ، سر الفاصلة، ووجه المناسبة والربط البياني بالآية التالية.</p>
+              </div>
+            </div>
+
+            <!-- Ayah-by-Ayah Navigation Toolbar -->
+            <div class="ayah-toolbar">
+              <div class="ayah-toolbar-filter">
+                <label for="quran-ayah-jump-select">الانتقال المباشر لآية:</label>
+                <select id="quran-ayah-jump-select" class="number-input select-styled small-select">
+                  <option value="all">👁️ عرض جميع الآيات متسلسلة</option>
+                </select>
+              </div>
+              <div class="ayah-toolbar-search">
+                <input type="text" id="quran-ayah-search" class="vocab-search-input small-search"
+                  placeholder="🔍 بحث في نص أو تفسير أو روابط الآيات..." />
+              </div>
+              <div class="ayah-toolbar-stats">
+                <span id="ayahs-count-badge" class="pill-badge pages-badge">٣٠ آية</span>
+              </div>
+            </div>
+
+            <div id="quran-connections-list" class="quran-cards-list">
+              <!-- Rendered Dynamically via JS -->
+            </div>
+          </div>
+
+          <!-- TAB 2: THEMATIC SECTIONS -->
+          <div id="quran-tab-thematics" class="quran-tab-pane" role="tabpanel">
+            <div class="tab-pane-header">
+              <div class="pane-title-group">
+                <h4 class="pane-title">📑 الوحدات والمحاور الموضوعية للسورة</h4>
+                <p class="pane-desc">تقسيم السورة إلى مقاطع مترابطة الموضوع والهدف لتيسير الحفظ مقطعاً بمقطع.</p>
+              </div>
+            </div>
+            <div id="quran-thematics-grid" class="thematics-grid">
+              <!-- Rendered Dynamically via JS -->
+            </div>
+          </div>
+
+          <!-- SUB-TAB 5: MUTASHABIHAT & MNEMONICS TABLE -->
+          <div id="quran-tab-mutashabihat" class="quran-tab-pane" role="tabpanel">
+            <div class="tab-pane-header">
+              <div class="pane-title-group">
+                <h4 class="pane-title">⚖️ جدول ضبط المتشابهات اللفظية والفواصل المشكلة</h4>
+                <p class="pane-desc">حصر المواضع المتشابهة مع إبراز الفروق الدقيقة وقواعد وضوابط الحفظ الميسرة لمنع اللبس.</p>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table id="quran-mutashabihat-table" class="mutashabihat-table">
+                <thead>
+                  <tr>
+                    <th style="width: 32%;">الآية في هذا الموضع كاملة</th>
+                    <th style="width: 32%;">الموضع المتشابه كاملاً</th>
+                    <th style="width: 18%;">موضع الفرق والتمايز</th>
+                    <th style="width: 18%;">قاعدة وضابط الحفظ الذهني</th>
+                  </tr>
+                </thead>
+                <tbody id="quran-mutashabihat-tbody">
+                  <!-- Rendered Dynamically via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 6: TAFSIR & ACTIONABLE TADABBUR -->
+          <div id="quran-tab-tadabbur" class="quran-tab-pane" role="tabpanel">
+            <div class="tab-pane-header">
+              <div class="pane-title-group">
+                <h4 class="pane-title">📖 معاني الألفاظ والهدايات والتدبرات العملية</h4>
+                <p class="pane-desc">بيان غريب القرآن، والمعنى الإجمالي الميسر، وتطبيقات عملية تترجم آيات السورة إلى واقع وسلوك.</p>
+              </div>
+            </div>
+            <!-- Core Reflections Box -->
+            <div class="reflections-hero-box">
+              <h5 class="reflections-title">✨ هدايات وتطبيقات عملية من السورة:</h5>
+              <ul id="quran-reflections-list" class="reflections-list">
+                <!-- Rendered Dynamically via JS -->
+              </ul>
+            </div>
+
+            <!-- Search & Filter Bar for Vocabulary -->
+            <div class="vocab-search-bar">
+              <input type="text" id="quran-vocab-search" class="vocab-search-input"
+                placeholder="🔍 ابحث في مفردات ومعاني آيات السورة..." />
+            </div>
+
+            <div id="quran-vocabulary-list" class="vocabulary-grid">
+              <!-- Rendered Dynamically via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Global Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <p>دِراية AI — منصة تعليمية ذكية مبنية على الذاكرة التعليمية التراكمية وتقييم الفهم بالأدلة لمتون وكتب التراث.</p>
+    </div>
+  </footer>
+
+  <!-- Floating AI Tutor Chatbot Trigger -->
+  <button id="lesson-chat-floating-btn" class="lesson-chat-floating-btn" type="button" aria-label="فتح محادثة المعلم الذكي" title="اسأل المعلم الذكي واستفسر عن الدرس">
+    <span class="chat-btn-pulse"></span>
+    <span class="chat-btn-icon">💬</span>
+    <span class="chat-btn-label">اسأل المعلم الذكي</span>
+  </button>
+
+  <!-- AI Scholarly Chat Drawer / Modal -->
+  <aside id="lesson-chat-drawer" class="lesson-chat-drawer" hidden aria-labelledby="chat-drawer-title" role="dialog">
+    <div class="chat-drawer-header">
+      <div class="chat-header-info">
+        <div class="chat-header-title-row">
+          <span class="chat-tutor-avatar">🧠</span>
+          <div>
+            <h3 id="chat-drawer-title" class="chat-drawer-title">المعلم الذكي — استفسارات ومدارسة</h3>
+            <span id="lesson-chat-context-pill" class="chat-context-pill">سياق: عام للمقرر</span>
+          </div>
+        </div>
+      </div>
+      <div class="chat-header-actions">
+        <button type="button" id="lesson-chat-clear-btn" class="chat-icon-btn" title="مسح رسائل الجلسة الحالية" aria-label="مسح رسائل الجلسة">🧹</button>
+        <button type="button" id="lesson-chat-expand-btn" class="chat-icon-btn" title="تكبير لملء الشاشة" aria-label="تكبير لملء الشاشة">⛶</button>
+        <button type="button" id="lesson-chat-close-btn" class="chat-close-btn" title="إغلاق" aria-label="إغلاق">&times;</button>
+      </div>
+    </div>
+
+    <!-- Chat History Sessions & Specialized Context Bar -->
+    <div class="chat-sessions-bar" id="chat-sessions-bar">
+      <div class="chat-session-select-wrapper">
+        <span class="chat-sessions-icon">📜</span>
+        <select id="chat-session-select" class="chat-session-select" title="اختر جلسة محادثة سابقة أو ابدأ جلسة جديدة">
+          <option value="__new_session__">➕ محادثة جديدة...</option>
+        </select>
+      </div>
+      <div class="chat-session-tools">
+        <button type="button" id="chat-new-session-btn" class="chat-session-btn" title="بدء محادثة جديدة بسياق مخصص">➕ جديدة</button>
+        <button type="button" id="chat-delete-session-btn" class="chat-session-btn btn-danger-subtle" title="حذف هذه المحادثة">🗑️</button>
+      </div>
+    </div>
+
+    <!-- Quick Suggested Prompts Bar -->
+    <div class="chat-suggestions-container" id="lesson-chat-suggestions-container">
+      <span class="suggestions-label">⚡ استفسارات مقترحة (انقر للسؤال الفوري):</span>
+      <div id="lesson-chat-suggestions" class="chat-suggestions-chips">
+        <button type="button" class="chat-suggest-chip" data-question="اشرح لي وجه الاستدلال بالحديث في هذا الباب بأسلوب مبسط">💡 اشرح وجه الاستدلال</button>
+        <button type="button" class="chat-suggest-chip" data-question="ما هي الفوائد التربوية والإيمانية المستفادة من هذا الدرس؟">🌟 فوائد تربوية</button>
+        <button type="button" class="chat-suggest-chip" data-question="من هم الرواة المذكورون في هذا الإسناد وما رتبتهم وحالهم؟">👥 تراجم الرواة والإسناد</button>
+        <button type="button" class="chat-suggest-chip" data-question="ما هي القواعد والضوابط الفقهية المستخلصة من هذا المقطع؟">⚖️ القواعد الفقهية</button>
+      </div>
+    </div>
+
+    <!-- Messages Thread Container -->
+    <div class="chat-messages-container" id="lesson-chat-messages" role="log" aria-live="polite">
+      <div class="chat-message-item tutor-message">
+        <div class="message-avatar">🧠</div>
+        <div class="message-bubble">
+          <div class="message-header"><strong>المعلم الذكي</strong> <span>الآن</span></div>
+          <div class="message-text">
+            <p>مرحباً بك يا طالب العلم! أنا رفيقك ومعلمك الذكي في مدارسة نصوص ومسائل هذا الكتاب. يمكنك سؤالي عن أي غريب لفظ، أو وجه استدلال، أو حال راوٍ، أو استيضاح حكم فقهي.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Typing Indicator -->
+    <div id="lesson-chat-typing" class="chat-typing-indicator" hidden>
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+      <span>المعلم الذكي يحرر الإجابة الموثقة...</span>
+    </div>
+
+    <!-- Chat Input Form -->
+    <form id="lesson-chat-form" class="chat-input-form">
+      <textarea id="lesson-chat-input" class="chat-textarea" rows="2" placeholder="اكتب سؤالك أو استفسارك هنا واضغط Enter للإرسال..." required></textarea>
+      <button type="submit" id="lesson-chat-send-btn" class="chat-send-btn" title="إرسال السؤال" aria-label="إرسال">
+        <span class="send-icon">➤</span>
+      </button>
+    </form>
+  </aside>
+
+  <!-- PERSON BIOGRAPHY MODAL (Siyar A'lam al-Nubala & Authoritative Sources) -->
+  <div id="person-biography-modal" class="modal-backdrop" hidden>
+    <div class="biography-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="bio-modal-person-name">
+      <!-- Modal Header -->
+      <div class="biography-modal-header">
+        <div class="bio-header-info">
+          <div class="bio-badge-row">
+            <span class="bio-source-badge">📖 سير أعلام النبلاء — الإمام الذهبي</span>
+            <span id="bio-modal-era-badge" class="bio-pill-badge">العصر والطبقة</span>
+            <span id="bio-modal-death-badge" class="bio-pill-badge muted">سنة الوفاة</span>
+          </div>
+          <h2 id="bio-modal-person-name" class="bio-person-title">اسم الشخصية</h2>
+          <p id="bio-modal-person-epithet" class="bio-person-epithet">اللقب والكنية والصفة العلمية</p>
+        </div>
+        <button type="button" id="close-biography-modal-btn" class="modal-close-btn" aria-label="إغلاق النافذة">&times;</button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="biography-modal-body" id="biography-modal-body">
+        <!-- Loading State -->
+        <div id="bio-modal-loading" class="status-card bio-loading-box">
+          <div class="spinner"></div>
+          <p class="loading-title">جارٍ استحضار ترجمة الشخصية من سير أعلام النبلاء ومصادر التراجم المعتمدة...</p>
+          <p class="loading-subtitle">يتم البحث في أمهات كتب الرجال والتراجم وتوثيق أقوال الأئمة والمرويات.</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="bio-modal-error" class="status-card error-card" hidden>
+          <p id="bio-modal-error-text">تعذر استحضار ترجمة الشخصية حالياً.</p>
+          <button type="button" id="bio-modal-retry-btn" class="secondary-btn">إعادة المحاولة ↻</button>
+        </div>
+
+        <!-- Content Details -->
+        <div id="bio-modal-content" class="biography-content-wrapper" hidden>
+          <!-- Summary Card -->
+          <div class="bio-summary-card">
+            <div class="bio-card-heading">
+              <span class="heading-icon">📜</span>
+              <span>التعريف الموجز والنسب:</span>
+            </div>
+            <p id="bio-modal-summary-text" class="bio-summary-text"></p>
+          </div>
+
+          <!-- Main Siyar Narrative -->
+          <div class="bio-section-card siyar-narrative-card">
+            <div class="bio-card-heading">
+              <span class="heading-icon">📖</span>
+              <span>الترجمة والسيرة المستفيضة (سير أعلام النبلاء):</span>
+            </div>
+            <div id="bio-modal-siyar-text" class="bio-narrative-content"></div>
+          </div>
+
+          <!-- Teachers and Students Grid -->
+          <div class="bio-dual-grid" id="bio-modal-teachers-students-grid">
+            <div class="bio-sub-card">
+              <h5 class="sub-card-title">🎓 أبرز الشيوخ ومن روى عنهم:</h5>
+              <div id="bio-modal-teachers-list" class="bio-chips-list"></div>
+            </div>
+            <div class="bio-sub-card">
+              <h5 class="sub-card-title">👥 أبرز التلاميذ ومن روى عنه:</h5>
+              <div id="bio-modal-students-list" class="bio-chips-list"></div>
+            </div>
+          </div>
+
+          <!-- Scholarly Praise (الجرح والتعديل) -->
+          <div class="bio-section-card praise-card" id="bio-modal-praise-card">
+            <div class="bio-card-heading">
+              <span class="heading-icon">⚖️</span>
+              <span>أقوال أئمة الجرح والتعديل والثناء عليه:</span>
+            </div>
+            <div id="bio-modal-praise-list" class="praise-quotes-container"></div>
+          </div>
+
+          <!-- Virtues & Narrations -->
+          <div class="bio-section-card virtues-card" id="bio-modal-virtues-card">
+            <div class="bio-card-heading">
+              <span class="heading-icon">🌟</span>
+              <span>المناقب والمرويات والأثر العلمي:</span>
+            </div>
+            <p id="bio-modal-virtues-text" class="bio-virtues-text"></p>
+          </div>
+
+          <!-- Verified Sources List -->
+          <div class="bio-sources-bar">
+            <span class="sources-label">📚 المصادر المعتمدة الموثقة:</span>
+            <div id="bio-modal-sources-list" class="sources-tags-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer Actions -->
+      <div class="biography-modal-footer">
+        <button type="button" id="bio-refresh-btn" class="secondary-btn">
+          <span>🔄 إعادة توليد الترجمة</span>
+        </button>
+        <button type="button" id="bio-ask-tutor-btn" class="secondary-btn glow-subtle-btn">
+          <span>💬 مباحثة مع المعلم الذكي حول هذه الشخصية</span>
+        </button>
+        <button type="button" id="bio-close-footer-btn" class="primary-btn">
+          <span>إغلاق النافذة</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Auth Modal (Sign In / Register / Forgot Password) -->
+  <div id="auth-modal" class="auth-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title" hidden>
+    <div class="auth-modal-dialog">
+      <div class="auth-modal-header">
+        <h3 id="auth-modal-title">تسجيل الدخول إلى دِراية AI</h3>
+        <button type="button" id="auth-modal-close" class="auth-modal-close-btn" aria-label="إغلاق">&times;</button>
+      </div>
+
+      <!-- Auth Tabs Navigation -->
+      <div class="auth-tabs" role="tablist">
+        <button type="button" class="auth-tab-btn active" id="tab-btn-login" data-tab="login" role="tab" aria-selected="true">تسجيل الدخول</button>
+        <button type="button" class="auth-tab-btn" id="tab-btn-register" data-tab="register" role="tab" aria-selected="false">حساب جديد</button>
+        <button type="button" class="auth-tab-btn" id="tab-btn-forgot" data-tab="forgot" role="tab" aria-selected="false">استعادة كلمة المرور</button>
+      </div>
+
+      <!-- Tab 1: Login -->
+      <form id="auth-form-login" class="auth-tab-pane active" novalidate>
+        <div class="auth-field">
+          <label for="login-username">اسم المستخدم أو البريد الإلكتروني:</label>
+          <input type="text" id="login-username" class="auth-input" required placeholder="مثال: طالب_علم أو user@example.com" autocomplete="username" />
+        </div>
+        <div class="auth-field">
+          <label for="login-password">كلمة المرور:</label>
+          <input type="password" id="login-password" class="auth-input" required placeholder="أدخل كلمة المرور" autocomplete="current-password" />
+        </div>
+        <div class="auth-form-actions">
+          <button type="button" id="goto-forgot-link" class="link-btn">نسيت كلمة المرور؟</button>
+        </div>
+        <div id="login-error-msg" class="auth-error-msg" hidden></div>
+        <button type="submit" id="login-submit-btn" class="primary-btn auth-submit-btn">
+          <span>دخول</span>
+        </button>
+      </form>
+
+      <!-- Tab 2: Register -->
+      <form id="auth-form-register" class="auth-tab-pane" novalidate hidden>
+        <div class="auth-field">
+          <label for="reg-username">اسم المستخدم:</label>
+          <input type="text" id="reg-username" class="auth-input" required placeholder="اسم المستخدم (3 أحرف على الأقل)" autocomplete="username" />
+        </div>
+        <div class="auth-field">
+          <label for="reg-email">البريد الإلكتروني:</label>
+          <input type="email" id="reg-email" class="auth-input" required placeholder="user@example.com" autocomplete="email" />
+        </div>
+        <div class="auth-field">
+          <label for="reg-password">كلمة المرور:</label>
+          <input type="password" id="reg-password" class="auth-input" required placeholder="6 أحرف/أرقام على الأقل" autocomplete="new-password" />
+        </div>
+        <div id="reg-error-msg" class="auth-error-msg" hidden></div>
+        <button type="submit" id="reg-submit-btn" class="primary-btn auth-submit-btn">
+          <span>إنشاء الحساب والبدء</span>
+        </button>
+      </form>
+
+      <!-- Tab 3: Forgot / Reset Password -->
+      <div id="auth-tab-forgot-pane" class="auth-tab-pane" hidden>
+        <!-- Step 1: Request code -->
+        <form id="auth-form-forgot" novalidate>
+          <p class="auth-hint-text">أدخل اسم المستخدم أو بريدك الإلكتروني للحصول على رمز التحقق لإعادة تعيين كلمة المرور.</p>
+          <div class="auth-field">
+            <label for="forgot-username">اسم المستخدم أو البريد:</label>
+            <input type="text" id="forgot-username" class="auth-input" required placeholder="اسم المستخدم أو البريد" />
+          </div>
+          <div id="forgot-error-msg" class="auth-error-msg" hidden></div>
+          <button type="submit" id="forgot-submit-btn" class="primary-btn auth-submit-btn">
+            <span>إرسال رمز التحقق</span>
+          </button>
+        </form>
+
+        <!-- Step 2: Enter code and reset password (shown after code requested) -->
+        <form id="auth-form-reset" novalidate hidden>
+          <div class="auth-success-box" id="reset-code-banner">
+            <span class="success-icon">✓</span>
+            <div>
+              <strong>تم إنشاء رمز التحقق!</strong>
+              <div class="code-display" id="reset-code-display"></div>
+              <small>في البيئة المحلية، يظهر الرمز أعلاه لتسهيل الاختبار الفوري.</small>
+            </div>
+          </div>
+          <div class="auth-field">
+            <label for="reset-code">رمز التحقق (6 أرقام):</label>
+            <input type="text" id="reset-code" class="auth-input" required placeholder="123456" maxlength="8" />
+          </div>
+          <div class="auth-field">
+            <label for="reset-new-password">كلمة المرور الجديدة:</label>
+            <input type="password" id="reset-new-password" class="auth-input" required placeholder="6 خانات على الأقل" autocomplete="new-password" />
+          </div>
+          <div id="reset-error-msg" class="auth-error-msg" hidden></div>
+          <button type="submit" id="reset-submit-btn" class="primary-btn auth-submit-btn">
+            <span>تأكيد وتعيين كلمة المرور</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="/workspace.js?v=20260909-auth-v3" defer></script>
+</body>
+</html>

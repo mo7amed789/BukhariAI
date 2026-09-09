@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BukhariAI.Api/BukhariAI.Api.csproj" />
+    <Project Path="src/BukhariAI.Application/BukhariAI.Application.csproj" />
+    <Project Path="src/BukhariAI.Domain/BukhariAI.Domain.csproj" />
+    <Project Path="src/BukhariAI.Infrastructure/BukhariAI.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/BukhariAI.UnitTests/BukhariAI.UnitTests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,24 @@
+{
+  "name": "دِراية AI — مساحة التعلّم التفاعلية لكتب التراث",
+  "short_name": "دِراية AI",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "theme_color": "#16382C",
+  "background_color": "#FBF9F5",
+  "display": "standalone"
+}
