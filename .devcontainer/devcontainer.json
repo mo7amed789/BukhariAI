@@ -1,0 +1,20 @@
+{
+  "name": "BukhariAI Codespace",
+  "forwardPorts": [5014, 7130, 8080, 1433],
+  "portsAttributes": {
+    "5014": {
+      "label": "BukhariAI API (HTTP)",
+      "onAutoForward": "openBrowser"
+    },
+    "7130": {
+      "label": "BukhariAI API (HTTPS)"
+    },
+    "8080": {
+      "label": "BukhariAI Docker Production"
+    },
+    "1433": {
+      "label": "SQL Server 2022"
+    }
+  },
+  "postStartCommand": "docker compose up -d sqlserver"
+}

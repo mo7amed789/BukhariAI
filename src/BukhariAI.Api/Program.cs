@@ -307,19 +307,58 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<BukhariDbContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    try
+    
+    if (db.Database.IsRelational())
     {
-        if (db.Database.IsRelational())
+        const int maxRetries = 3;
+        var retryDelay = TimeSpan.FromSeconds(3);
+        bool migrationSucceeded = false;
+
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
         {
-            db.Database.Migrate();
+            try
+            {
+                logger.LogInformation("Applying database migrations (Attempt {Attempt}/{MaxRetries})...", attempt, maxRetries);
+                db.Database.Migrate();
+                migrationSucceeded = true;
+                logger.LogInformation("Database migrations applied successfully.");
+                break;
+            }
+            catch (Exception ex) when (attempt < maxRetries)
+            {
+                logger.LogWarning("Database connection not ready yet ({Message}). Retrying in {Delay}s...", ex.Message, retryDelay.TotalSeconds);
+                await Task.Delay(retryDelay);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Automatic database migration skipped or encountered an issue during startup: {Message}", ex.Message);
+                if (!OperatingSystem.IsWindows())
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("\n" + new string('=', 72));
+                    Console.WriteLine("⚠️  [BukhariAI - SQL Server Notice]");
+                    Console.WriteLine("Could not connect to SQL Server on localhost:1433.");
+                    Console.WriteLine("If you are running in Linux or GitHub Codespaces, please ensure");
+                    Console.WriteLine("the SQL Server container is running by executing in your terminal:");
+                    Console.WriteLine("    docker compose up -d sqlserver");
+                    Console.WriteLine(new string('=', 72) + "\n");
+                    Console.ResetColor();
+                }
+            }
         }
 
-        // Automatic self-healing: sanitize any corrupted concept records
-        await ConceptCleanupService.CleanupBrokenConceptsAsync(db, logger);
-    }
-    catch (Exception ex)
-    {
-        logger.LogWarning(ex, "Automatic database migration or concept cleanup skipped or encountered an issue during startup: {Message}", ex.Message);
+        if (migrationSucceeded)
+        {
+            try
+            {
+                // Automatic self-healing: sanitize any corrupted concept records
+                await ConceptCleanupService.CleanupBrokenConceptsAsync(db, logger);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Concept cleanup encountered an issue: {Message}", ex.Message);
+            }
+        }
     }
 }
 
