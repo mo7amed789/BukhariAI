@@ -47,7 +47,7 @@ public sealed class GeminiAiService : IAiService
         string rawModel = _options.Model;
         string model = string.IsNullOrWhiteSpace(rawModel) || rawModel.Contains("2.5") ? "gemini-3.6-flash" : rawModel;
         string endpoint = string.IsNullOrWhiteSpace(_options.Endpoint)
-            ? $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+            ? $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}"
             : _options.Endpoint;
 
         _logger.LogInformation(
@@ -226,7 +226,10 @@ public sealed class GeminiAiService : IAiService
                 }
             }
 
-            throw new InvalidOperationException("Gemini Vision could not process the requested page screenshots.");
+            string detailedError = response is not null
+                ? $"Gemini Vision error (HTTP {(int)response.StatusCode}): {responseBody}"
+                : "Gemini Vision request returned null or timed out.";
+            throw new InvalidOperationException(detailedError);
         }
 
         _logger.LogInformation("Received successful HTTP 200 response from Gemini API ({Bytes} bytes).", responseBody.Length);
@@ -273,7 +276,7 @@ public sealed class GeminiAiService : IAiService
         string rawModel = _options.Model;
         string model = string.IsNullOrWhiteSpace(rawModel) || rawModel.Contains("2.5") ? "gemini-3.6-flash" : rawModel;
         string endpoint = string.IsNullOrWhiteSpace(_options.Endpoint)
-            ? $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+            ? $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}"
             : _options.Endpoint;
 
         _logger.LogInformation(
