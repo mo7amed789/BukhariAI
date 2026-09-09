@@ -149,6 +149,13 @@ builder.Services.AddDbContext<BukhariDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
         ?? "Server=(localdb)\\MSSQLLocalDB;Database=MyDatabase;Trusted_Connection=True;TrustServerCertificate=True;";
+
+    // On Linux / Codespaces / Docker, LocalDB is not supported, automatically map to local SQL Server container
+    if (!OperatingSystem.IsWindows() && connectionString.Contains("(localdb)", StringComparison.OrdinalIgnoreCase))
+    {
+        connectionString = "Server=localhost,1433;Database=BukhariAIDb;User Id=sa;Password=BukhariAI_P@ssw0rd2026;TrustServerCertificate=True;MultipleActiveResultSets=True;";
+    }
+
     options.UseSqlServer(connectionString, sqlOptions =>
         sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery));
 });
